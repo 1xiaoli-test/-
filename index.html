@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测试小站</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="brand" data-nav="home">测试小站</button>
+    <nav class="nav">
+      <button class="nav-item" data-nav="home">测试</button>
+      <button class="nav-item" data-nav="history">历史</button>
+      <button class="nav-item" data-nav="settings">设置</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- 首页：测试列表 -->
+  <section id="view-home" class="view">
+    <div class="page-head">
+      <h1>心理测试小站</h1>
+      <p class="subtitle">选一个测试，开始探索自己</p>
+    </div>
+    <div id="test-grid" class="test-grid"></div>
+  </section>
+
+  <!-- 答题页 -->
+  <section id="view-test" class="view" hidden>
+    <div class="quiz-head">
+      <div class="quiz-meta">
+        <span id="quiz-name" class="quiz-name"></span>
+        <span id="quiz-progress-text" class="quiz-progress-text"></span>
+      </div>
+      <div class="progress-track"><div id="quiz-progress-bar" class="progress-fill"></div></div>
+    </div>
+    <div class="quiz-body">
+      <div id="question-index" class="question-index"></div>
+      <h2 id="question-text" class="question-text"></h2>
+      <div id="options" class="options-list"></div>
+    </div>
+    <div class="quiz-foot">
+      <button id="btn-prev" class="btn ghost">上一题</button>
+      <span id="quiz-save-hint" class="save-hint">进度自动保存</span>
+      <button id="btn-next" class="btn primary">下一题</button>
+    </div>
+  </section>
+
+  <!-- 结果页 -->
+  <section id="view-result" class="view" hidden>
+    <div id="result-content"></div>
+  </section>
+
+  <!-- 历史页 -->
+  <section id="view-history" class="view" hidden>
+    <div class="page-head">
+      <h1>历史记录</h1>
+      <p class="subtitle" id="history-subtitle"></p>
+      <div class="page-actions">
+        <button id="btn-export-all" class="btn ghost">导出全部记录</button>
+      </div>
+    </div>
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <!-- 设置页 -->
+  <section id="view-settings" class="view" hidden>
+    <div class="page-head">
+      <h1>设置</h1>
+    </div>
+
+    <div class="settings-block">
+      <h3>大模型深度解读</h3>
+      <p class="block-desc">配置 OpenAI 兼容接口后，结果页可一键调用大模型生成个性化深度报告。接口需支持浏览器跨域（CORS）。</p>
+      <label class="field-label" for="set-base-url">Base URL</label>
+      <input id="set-base-url" class="field-input" placeholder="https://api.openai.com/v1" autocomplete="off">
+      <label class="field-label" for="set-api-key">API Key</label>
+      <input id="set-api-key" class="field-input" type="password" placeholder="sk-..." autocomplete="off">
+      <label class="field-label" for="set-model">模型名</label>
+      <input id="set-model" class="field-input" placeholder="gpt-4o-mini" autocomplete="off">
+      <div class="settings-actions">
+        <button id="btn-save-llm" class="btn primary">保存配置</button>
+        <button id="btn-test-llm" class="btn ghost">测试连接</button>
+      </div>
+      <div id="llm-status" class="status-line"></div>
+    </div>
+
+    <div class="settings-block">
+      <h3>数据管理</h3>
+      <p class="block-desc">所有测试数据仅保存在本机浏览器，导出后可自行备份（如放入项目文件夹享受 NAS 同步）。</p>
+      <div class="settings-actions">
+        <button id="btn-export-all-2" class="btn ghost">导出全部记录</button>
+        <button id="btn-clear-data" class="btn danger">清空全部数据</button>
+      </div>
+      <div id="data-status" class="status-line"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">数据仅保存在本机浏览器 · 测试小站</footer>
+
+<script src="tests-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
