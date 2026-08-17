@@ -533,3 +533,54 @@ window.TESTS.push({
     }
   }
 });
+
+/* ==================== 测试分组配置（首页折叠菜单） ====================
+ * 在此维护分组，首页会按顺序渲染为可折叠菜单。
+ * 字段说明：
+ *   id        唯一标识
+ *   name      分组名（显示在标题）
+ *   icon      标题前的 emoji/图标
+ *   testIds   该分组包含的测试 id 数组（顺序即展示顺序）
+ *   open      初始是否展开（默认 false）
+ *
+ * 一个测试可同时属于多个分组（如既在「热门」又在「人格测试」）。
+ * 未被任何分组引用的测试会自动归入末尾的「其他」分组。
+ * 添加新分类：复制一个对象，填好字段即可，无需改引擎代码。
+ */
+/* ==================== MMPI-2 明尼苏达多相人格测验 ==================== */
+window.TESTS.push({
+  id: "mmpi2",
+  name: "MMPI-2 明尼苏达多相人格测验",
+  icon: "M2",
+  color: "#5856d6",
+  description: "临床心理学经典人格测验，567 题，涵盖效度、临床、内容、RC、PSY-5 等 147 个量表，计分严格对标使用手册。",
+  time: "约 45-90 分钟",
+  needGender: true,
+  scoring: {
+    type: "mmpi2"
+  },
+  questions: (function () {
+    var qs = [];
+    if (typeof MMPI2_DATA !== "undefined" && MMPI2_DATA.questions) {
+      qs = MMPI2_DATA.questions.map(function (q) {
+        return {
+          no: q.no,
+          text: q.zh,
+          options: [
+            { label: "是", value: "T" },
+            { label: "否", value: "F" },
+            { label: "无法回答", value: "X" }
+          ]
+        };
+      });
+    }
+    return qs;
+  })(),
+  interpretation: {}
+});
+
+window.TEST_GROUPS = [
+  { id: "hot", name: "热门测试", icon: "🔥", testIds: ["mbti"], open: true },
+  { id: "personality", name: "人格测试", icon: "🧠", testIds: ["attachment", "mbti"], open: true },
+  { id: "mental", name: "心理健康测试", icon: "💚", testIds: ["scl90", "mmpi2"], open: true }
+];
