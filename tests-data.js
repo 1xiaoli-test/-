@@ -579,8 +579,646 @@ window.TESTS.push({
   interpretation: {}
 });
 
+/* ==================== PDP 性格测试 ==================== */
+window.TESTS.push((function () {
+  function opts(dim) {
+    function v(n) { var o = {}; o[dim] = n; return o; }
+    return [
+      { label: "非常同意", value: v(5) },
+      { label: "比较同意", value: v(4) },
+      { label: "差不多", value: v(3) },
+      { label: "勉强同意", value: v(2) },
+      { label: "不同意", value: v(1) }
+    ];
+  }
+  return {
+    id: "pdp",
+    name: "PDP 性格测试",
+    icon: "PD",
+    color: "#ff9500",
+    description: "PDP（Professional Dyna-Metric Programs）行为特质动态衡量系统，根据天生特质将人群分为老虎、孔雀、考拉、猫头鹰、变色龙五种类型，常用于人才管理、招聘与团队建设。",
+    time: "约 5 分钟",
+    scoring: {
+      type: "dimension",
+      dimensions: [
+        { key: "TIGER", label: "老虎型（支配型）", max: 30 },
+        { key: "PEACOCK", label: "孔雀型（表达型）", max: 30 },
+        { key: "KOALA", label: "考拉型（耐心型）", max: 30 },
+        { key: "OWL", label: "猫头鹰型（精确型）", max: 30 },
+        { key: "CHAMELEON", label: "变色龙型（整合型）", max: 30 }
+      ],
+      classify: function (s) {
+        var names = { TIGER: "老虎型", PEACOCK: "孔雀型", KOALA: "考拉型", OWL: "猫头鹰型", CHAMELEON: "变色龙型" };
+        var keys = ["TIGER", "PEACOCK", "KOALA", "OWL", "CHAMELEON"];
+        var sorted = keys.map(function (k) { return { k: k, v: s[k] || 0 }; })
+          .sort(function (a, b) { return b.v - a.v; });
+        var top = sorted[0], second = sorted[1], last = sorted[4];
+        var gap12 = top.v - second.v;
+        var gapRange = top.v - last.v;
+        var type, typeName, summary;
+        if (gap12 >= 6) {
+          type = names[top.k];
+          typeName = type;
+          summary = "你的「" + type + "」特质显著突出，远高于其它四项，属于典型的该属性。";
+        } else if (gapRange >= 8) {
+          type = names[top.k] + "+" + names[second.k];
+          typeName = names[top.k] + " + " + names[second.k];
+          summary = "你的「" + names[top.k] + "」与「" + names[second.k] + "」两项分数大大超过其它三项，属于这两种动物的综合。";
+        } else {
+          type = "均衡型";
+          typeName = "均衡型（面面俱到）";
+          summary = "你的各项特质分数都比较接近，属于面面俱到的近似完美性格，能灵活适应不同环境与角色。";
+        }
+        return { type: type, typeName: typeName, summary: summary };
+      }
+    },
+    questions: [
+      { text: "你做事是一个值得信赖的人吗？", options: opts("OWL") },
+      { text: "你个性温和吗？", options: opts("KOALA") },
+      { text: "你有活力吗？", options: opts("PEACOCK") },
+      { text: "你善解人意吗？", options: opts("CHAMELEON") },
+      { text: "你独立吗？", options: opts("TIGER") },
+      { text: "你受人爱戴吗？", options: opts("PEACOCK") },
+      { text: "做事认真且正直吗？", options: opts("OWL") },
+      { text: "你富有同情心吗？", options: opts("KOALA") },
+      { text: "你有说服力吗？", options: opts("CHAMELEON") },
+      { text: "你大胆吗？", options: opts("TIGER") },
+      { text: "你精确吗？", options: opts("OWL") },
+      { text: "你适应能力强吗？", options: opts("CHAMELEON") },
+      { text: "你组织能力好吗？", options: opts("PEACOCK") },
+      { text: "你是否积极主动？", options: opts("TIGER") },
+      { text: "你害羞吗？", options: opts("KOALA") },
+      { text: "你强势吗？", options: opts("OWL") },
+      { text: "你镇定吗？", options: opts("KOALA") },
+      { text: "你勇于学习吗？", options: opts("TIGER") },
+      { text: "你反应快吗？", options: opts("CHAMELEON") },
+      { text: "你外向吗？", options: opts("PEACOCK") },
+      { text: "你注意细节吗？", options: opts("OWL") },
+      { text: "你爱说话吗？", options: opts("PEACOCK") },
+      { text: "你的协调能力好吗？", options: opts("CHAMELEON") },
+      { text: "你勤劳吗？", options: opts("TIGER") },
+      { text: "你慷慨吗？", options: opts("KOALA") },
+      { text: "你小心翼翼吗？", options: opts("OWL") },
+      { text: "你令人愉快吗？", options: opts("CHAMELEON") },
+      { text: "你传统吗？", options: opts("KOALA") },
+      { text: "你亲切吗？", options: opts("PEACOCK") },
+      { text: "你工作足够有效率吗？", options: opts("TIGER") }
+    ],
+    interpretation: {
+      types: {
+        "老虎型": {
+          title: "老虎型（支配型 Dominance）",
+          summary: "有自信、够权威、决断力高、竞争性强，胸怀大志，喜欢评估与冒险，是天生的开拓者与改革者。",
+          blocks: [
+            { h: "核心特质", p: "有自信，够权威，决断力高，竞争性强，胸怀大志，喜欢评估。企图心强烈，喜欢冒险，个性积极，竞争力强，有对抗性。" },
+            { h: "优点", p: "善于控制局面并能果断地作出决定；用这一类型工作方式的人成就非凡。" },
+            { h: "缺点", p: "感到压力时会过于重视迅速完成工作而忽视细节，可能不顾自己和别人的情感；要求过高加之好胜天性，有时会成为工作狂。决策上较易流于专断、不易妥协，较容易与人发生争执摩擦。" },
+            { h: "工作风格", p: "交谈时进行直接的目光接触；有目的性且能迅速行动；说话快速且具有说服力；运用直截了当的实际性语言；办公室挂有日历、计划要点。" },
+            { h: "适合岗位", p: "开创性与改革性的工作，在开拓市场的时代或需要执行改革的环境中，最容易有出色的表现。" },
+            { h: "相处之道", p: "下属中有「老虎」要给予他更多的责任，他会觉得自己有价值，布置工作时注意结果导向；上司是老虎则要在他面前展示自信果断的一面，同时避免在公众场合与他唱反调。" },
+            { h: "代表人物", p: "毛泽东、撒切尔夫人、朱镕基、韦尔奇" }
+          ]
+        },
+        "孔雀型": {
+          title: "孔雀型（表达型 Extroversion）",
+          summary: "热心乐观、口才流畅、好交朋友、风度翩翩，热情洋溢且表现欲强，很适合需要当众表现与人际互动的工作。",
+          blocks: [
+            { h: "核心特质", p: "很热心，够乐观，口才流畅，好交朋友，风度翩翩，诚恳热心。热情洋溢、好交朋友、口才流畅、个性乐观、表现欲强。" },
+            { h: "优点", p: "生性活泼，能够使人兴奋，高效地工作，善于建立同盟或搞好关系来实现目标。很适合需要当众表现、引人注目、态度公开的工作。" },
+            { h: "缺点", p: "因其跳跃性的思考模式，常无法顾及细节以及对事情的完成执着度。" },
+            { h: "工作风格", p: "运用快速的手势；面部表情特别丰富；运用有说服力的语言；工作空间里充满了各种能鼓舞人心的东西。" },
+            { h: "适合岗位", p: "人际导向的工作；推动新思维、执行新使命或推广宣传的任务；开发市场或创建产业的工作环境。" },
+            { h: "相处之道", p: "以鼓励为主，给他表现机会保持工作激情，但也要注意他的情绪化和防止细节失误。老虎型领导人配孔雀型二把手是最佳搭配。" },
+            { h: "代表人物", p: "孙中山、克林顿、里根、戈尔巴乔夫" }
+          ]
+        },
+        "考拉型": {
+          title: "考拉型（耐心型 Pace/Patience）",
+          summary: "稳定敦厚、温和规律、不好冲突，行事稳健且有过人耐力，善于在集体环境中营造和谐。",
+          blocks: [
+            { h: "核心特质", p: "很稳定，够敦厚，温和规律，不好冲突。行事稳健、强调平实，有过人的耐力，温和善良。" },
+            { h: "优点", p: "对别人的感情很敏感，使他们在集体环境中左右逢源。" },
+            { h: "缺点", p: "很难坚持自己的观点和迅速做出决定；不喜欢面对与同事意见不和的局面，不愿处理争执。" },
+            { h: "工作风格", p: "面部表情和蔼可亲；说话慢条斯理、声音轻柔；用赞同型、鼓励性的语言；办公室里摆有家人的照片。" },
+            { h: "适合岗位", p: "安定内部的管理工作，在需要专业精密技巧的领域，或在气氛和谐且不具赶迫时间表的职场环境中最能发挥所长。企业产品稳踞市场时，考拉型领导人是极佳的总舵手。" },
+            { h: "相处之道", p: "对考拉要多给予关注和温柔，想方设法挖掘他们内在的潜力。老虎型当一哥配考拉型二把手也是好搭配。" },
+            { h: "代表人物", p: "甘地、蒋经国、宋庆龄" }
+          ]
+        },
+        "猫头鹰型": {
+          title: "猫头鹰型（精确型 Precision/Conformity）",
+          summary: "传统严谨、注重细节、条理分明、责任感强，分析力强且精准度高，擅长把细节条例化。",
+          blocks: [
+            { h: "核心特质", p: "很传统，注重细节，条理分明，责任感强，重视纪律。保守、分析力强，精准度高，喜欢把细节条例化，个性拘谨含蓄。" },
+            { h: "优点", p: "天生就有爱找出事情真相的习性，有耐心仔细考察所有细节并想出合乎逻辑的解决办法。" },
+            { h: "缺点", p: "把事实和精确度置于感情之前，会被认为是感情冷漠。在压力下，有时为了避免做出结论会分析过度。" },
+            { h: "工作风格", p: "很少有面部表情；动作缓慢；使用精确的语言、注意特殊细节；办公室里挂有图表、统计数字等。" },
+            { h: "适合岗位", p: "架构稳定和制度健全的组织最适合用猫头鹰型当各级领导人；财务、审计、技术、事务机构等讲究制度化、事事求依据的工作。不宜担任需要创建或创新能力的任务。" },
+            { h: "相处之道", p: "尊重其重规则轻情感的风格，注意其容易吹毛求疵、不易维持团队凝聚力的倾向。" },
+            { h: "代表人物", p: "包拯（包青天）" }
+          ]
+        },
+        "变色龙型": {
+          title: "变色龙型（整合型 Conformity）",
+          summary: "中庸而不极端、凡事不执着、韧性极强、擅于沟通，是天生的谈判家，能充分融入各种新环境新文化。",
+          blocks: [
+            { h: "核心特质", p: "中庸而不极端，凡事不执着，韧性极强，擅于沟通，是天生的谈判家，能充分融入各种新环境新文化且适应性良好。" },
+            { h: "优点", p: "善于在工作中调整自己的角色去适应环境，具有很好的沟通能力；处事圆融，弹性极强，处处留有余地，是办事让人放心的人物。" },
+            { h: "缺点", p: "在他人眼中会觉得他们「没有个性」，较无原则；由于以善变为专长，做人不会有什么立场或原则。" },
+            { h: "工作风格", p: "综合老虎、孔雀、考拉、猫头鹰的特质，看似没有凸出个性，但擅长整合内外资源；没有强烈的个人意识形态。" },
+            { h: "适合岗位", p: "对内对外的各种交涉，冲突环境中游走折中，只要任务确实、目标清楚，都能恰如其分地完成。" },
+            { h: "相处之道", p: "善于变色、适应环境，适合需要弹性协调的岗位。" },
+            { h: "代表人物", p: "擅长整合沟通的协调型人才" }
+          ]
+        },
+        "均衡型": {
+          title: "均衡型（面面俱到）",
+          summary: "各项特质分数都比较接近，属于面面俱到的近似完美性格，能灵活适应不同环境与角色。",
+          blocks: [
+            { h: "核心特质", p: "你的各项动物特质分数都比较接近，没有明显的短板或极端倾向，属于面面俱到的近似完美性格。" },
+            { h: "优势", p: "你在不同行为模式之间切换自如：该果断时能果断，该耐心时能耐心，适应力极强，几乎可以在任何团队中扮演合适的角色。" },
+            { h: "小提示", p: "面面俱到也意味着缺乏突出的主导风格。建议结合具体场景，刻意培养一到两种核心特质作为你的「主标签」，让优势更易被识别与发挥。" }
+          ]
+        }
+      },
+      special: function (record) {
+        var type = record.type || "";
+        if (type.indexOf("+") < 0) return null;
+        var parts = type.split("+");
+        var self = this;
+        var out = [];
+        parts.forEach(function (p) {
+          var def = self.types[p];
+          if (!def || !def.blocks) return;
+          out.push({ h: p + " · 核心特质", p: def.blocks[0].p });
+          out.push({ h: p + " · 适合岗位", p: def.blocks[4].p });
+        });
+        out.push({ h: "混合型提示", p: "你的特质兼具「" + parts.join("」与「") + "」两种动物的特点。这类组合型性格的优势在于场景适应性强：既能发挥" + parts[0] + "的主导力，又能借助" + parts[1] + "的辅助特质补充盲区。建议在职业与团队中主动寻找能同时发挥两种特质的角色。" });
+        return out;
+      }
+    }
+  };
+})());
+
+/* ==================== 霍兰德职业兴趣测试 ==================== */
+window.TESTS.push((function () {
+  function ho(dim) {
+    function v(n) { var o = {}; o[dim] = n; return o; }
+    return [
+      { label: "喜欢", value: v(1) },
+      { label: "不喜欢", value: v(0) }
+    ];
+  }
+  return {
+    id: "holland",
+    name: "霍兰德职业兴趣测试",
+    icon: "HO",
+    color: "#34c759",
+    description: "Holland RIASEC 职业兴趣理论，将人格与职业环境分为现实、研究、艺术、社会、企业、常规六大类型，取前三高分生成三码兴趣代码，帮你找到匹配的职业方向。",
+    time: "约 8 分钟",
+    scoring: {
+      type: "dimension",
+      dimensions: [
+        { key: "R", label: "现实型 R", max: 10 },
+        { key: "I", label: "研究型 I", max: 10 },
+        { key: "A", label: "艺术型 A", max: 10 },
+        { key: "S", label: "社会型 S", max: 10 },
+        { key: "E", label: "企业型 E", max: 10 },
+        { key: "C", label: "常规型 C", max: 10 }
+      ],
+      classify: function (s) {
+        var keys = ["R", "I", "A", "S", "E", "C"];
+        var sorted = keys.map(function (k) { return { k: k, v: s[k] || 0 }; })
+          .sort(function (a, b) { return b.v - a.v; });
+        var code = sorted[0].k + sorted[1].k + sorted[2].k;
+        var names = { R: "现实型", I: "研究型", A: "艺术型", S: "社会型", E: "企业型", C: "常规型" };
+        return {
+          type: code,
+          typeName: "霍兰德代码 " + code,
+          summary: "你的前三高兴趣类型依次为" + names[sorted[0].k] + "（" + sorted[0].k + "）、" + names[sorted[1].k] + "（" + sorted[1].k + "）、" + names[sorted[2].k] + "（" + sorted[2].k + "），组合成三码兴趣代码 " + code + "。"
+        };
+      }
+    },
+    questions: [
+      { text: "修理电器用品或机械装置", options: ho("R") },
+      { text: "组装模型、做木工或手工艺", options: ho("R") },
+      { text: "从事需要体力的户外活动", options: ho("R") },
+      { text: "操作机器或驾驶设备", options: ho("R") },
+      { text: "种植花草、照料动物", options: ho("R") },
+      { text: "自己动手修理家里的东西", options: ho("R") },
+      { text: "操控无人机、遥控车等设备", options: ho("R") },
+      { text: "烹饪或烘焙", options: ho("R") },
+      { text: "参加运动或户外探险", options: ho("R") },
+      { text: "拆解物品了解其内部构造", options: ho("R") },
+      { text: "阅读科学类文章或书籍", options: ho("I") },
+      { text: "做科学实验或研究", options: ho("I") },
+      { text: "分析数据、做统计报表", options: ho("I") },
+      { text: "解决数学或逻辑难题", options: ho("I") },
+      { text: "探究事物的原理和成因", options: ho("I") },
+      { text: "观察自然现象并做记录", options: ho("I") },
+      { text: "用电脑编写程序解决问题", options: ho("I") },
+      { text: "研究人体结构或医学知识", options: ho("I") },
+      { text: "钻研科学理论或前沿技术", options: ho("I") },
+      { text: "花时间查资料寻找问题的答案", options: ho("I") },
+      { text: "画画、素描或从事美术创作", options: ho("A") },
+      { text: "演奏乐器或唱歌", options: ho("A") },
+      { text: "写故事、诗歌或文章", options: ho("A") },
+      { text: "设计海报、排版或美化页面", options: ho("A") },
+      { text: "参观艺术展览或看表演", options: ho("A") },
+      { text: "拍照、录影并后期处理", options: ho("A") },
+      { text: "参与戏剧表演或舞蹈", options: ho("A") },
+      { text: "按自己的创意打扮或布置空间", options: ho("A") },
+      { text: "尝试各种创意表达方式", options: ho("A") },
+      { text: "探索新的艺术形式或媒材", options: ho("A") },
+      { text: "教导或指导他人学习", options: ho("S") },
+      { text: "倾听朋友的烦恼并给出建议", options: ho("S") },
+      { text: "参加志愿服务或社区活动", options: ho("S") },
+      { text: "照顾小孩、老人或病人", options: ho("S") },
+      { text: "与他人合作完成一项任务", options: ho("S") },
+      { text: "帮助调解人与人之间的冲突", options: ho("S") },
+      { text: "规划并主持团体活动", options: ho("S") },
+      { text: "在别人需要时伸出援手", options: ho("S") },
+      { text: "与别人分享自己的知识和经验", options: ho("S") },
+      { text: "花时间了解别人的感受和需求", options: ho("S") },
+      { text: "说服别人接受你的观点", options: ho("E") },
+      { text: "带领团队完成一个项目", options: ho("E") },
+      { text: "参加辩论或公开发表演讲", options: ho("E") },
+      { text: "创业或经营自己的生意", options: ho("E") },
+      { text: "推销产品或向客户介绍服务", options: ho("E") },
+      { text: "策划营销活动或推广方案", options: ho("E") },
+      { text: "参与竞争并争取获胜", options: ho("E") },
+      { text: "做决定并愿意为此承担责任", options: ho("E") },
+      { text: "谈判或协商争取更好条件", options: ho("E") },
+      { text: "设定目标并带领他人一起达成", options: ho("E") },
+      { text: "整理、建档、归类文件资料", options: ho("C") },
+      { text: "用表格工具管理数据", options: ho("C") },
+      { text: "按照标准流程完成工作", options: ho("C") },
+      { text: "核对数字或文件是否准确", options: ho("C") },
+      { text: "记账或处理财务事务", options: ho("C") },
+      { text: "把桌面和环境整理得井井有条", options: ho("C") },
+      { text: "按照规范和指示行事", options: ho("C") },
+      { text: "处理行政文书或报表", options: ho("C") },
+      { text: "制作清单或检核表", options: ho("C") },
+      { text: "校对文档或检查细节", options: ho("C") }
+    ],
+    interpretation: {
+      dims: {
+        R: { name: "现实型 R", high: "喜欢与具体事物打交道（工具、机器、动植物、户外），务实坦率，看重看得见摸得着的工作成果。适合机械、工程、农林、军事、体育等动手实干类职业。" },
+        I: { name: "研究型 I", high: "对探索未知充满热情，喜欢观察、分析、推理，享受解决复杂问题的过程。适合科研、医学、数据分析、算法研发等深度思考类职业。" },
+        A: { name: "艺术型 A", high: "追求自由表达与创造，对美有天然敏感度，不喜欢循规蹈矩。适合设计、写作、影视、音乐、表演等创意表达类职业。" },
+        S: { name: "社会型 S", high: "关注他人需求与感受，善于沟通、富有同理心。适合教育、咨询、医疗护理、人力资源、公益等助人类职业。" },
+        E: { name: "企业型 E", high: "追求影响力与成就感，精力充沛、善于说服与带领团队。适合管理、销售、创业、法律、公关等领导决策类职业。" },
+        C: { name: "常规型 C", high: "重视秩序规范与精确，擅长处理数据和细节，在结构化环境中表现出色。适合会计、审计、行政、金融、档案等精确执行类职业。" }
+      },
+      special: function (record) {
+        var code = record.type || "";
+        if (code.length !== 3) return null;
+        var names = { R: "现实型", I: "研究型", A: "艺术型", S: "社会型", E: "企业型", C: "常规型" };
+        var desc = { R: "动手实干派", I: "深度思考者", A: "创意表达者", S: "助人为乐者", E: "领导决策者", C: "精确执行者" };
+        var adjMap = { R: ["I", "C"], I: ["R", "A"], A: ["I", "S"], S: ["A", "E"], E: ["S", "C"], C: ["E", "R"] };
+        var diagMap = { R: ["S"], I: ["E"], A: ["C"], S: ["R"], E: ["I"], C: ["A"] };
+        var first = code.charAt(0), second = code.charAt(1);
+        var adj = adjMap[first].indexOf(second) >= 0;
+        var diag = diagMap[first].indexOf(second) >= 0;
+        var note = "你的兴趣代码是 <strong>" + code + "</strong>：第一码 <strong>" + first + " " + names[first] + "（" + desc[first] + "）</strong> 权重最高，是主导兴趣；" + second + " " + names[second] + " 次之；" + code.charAt(2) + " " + names[code.charAt(2)] + " 为辅助兴趣。";
+        if (adj) note += "前两码为相邻类型（" + first + "-" + second + "），说明你的兴趣组合较为协调，容易找到兼容两种特质的职业。";
+        else if (diag) note += "前两码为对角类型（" + first + "-" + second + "），说明你的兴趣较为多元，可能同时追求差异较大的价值，需要找到能兼顾两者的职业。";
+        else note += "前两码（" + first + "-" + second + "）既不相邻也不对角，兴趣组合存在一定张力，建议在职业探索中明确最看重的方向。";
+        var out = [];
+        out.push({ h: "兴趣代码总览", p: note });
+        out.push({ h: "择业建议", p: "结合三码顺序，优先寻找能发挥第一码" + names[first] + "特质的职业环境，再用第二、三码的兴趣补充和发展。兴趣类型没有好坏之分，关键是找到与你兴趣结构匹配的环境。" });
+        return out;
+      }
+    }
+  };
+})());
+
+/* ==================== 8 个心理健康量表（PHQ-9/GAD-7/ISI/SAD/SDS/SAS/Y-BOCS/YMRS） ==================== */
+(function () {
+  function opts4(a, b, c, d) { return [{ label: a, value: 0 }, { label: b, value: 1 }, { label: c, value: 2 }, { label: d, value: 3 }]; }
+  function opts5(a, b, c, d, e) { return [{ label: a, value: 0 }, { label: b, value: 1 }, { label: c, value: 2 }, { label: d, value: 3 }, { label: e, value: 4 }]; }
+  function yn() { return [{ label: "是", value: 1 }, { label: "否", value: 0 }]; }
+  function lk4(second) { return [{ label: "没有或很少时间", value: 1 }, { label: second, value: 2 }, { label: "相当多时间", value: 3 }, { label: "绝大部分或全部时间", value: 4 }]; }
+  function q(text, options) { return { text: text, options: options }; }
+
+  window.TESTS.push({
+    id: "phq9",
+    name: "PHQ-9 抑郁症筛查量表",
+    icon: "P9",
+    color: "#ff2d55",
+    description: "9 道题，评估最近两周的抑郁症状。Pfizer 授权，国际通用抑郁筛查工具。",
+    time: "约 2 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 27,
+      reversed: [],
+      levels: [
+        { min: 0, max: 4, level: "none", name: "无或极轻微", summary: "近期情绪状态整体平稳，未达到需要干预的抑郁水平。继续保持规律作息与适度运动，留意情绪波动即可。" },
+        { min: 5, max: 9, level: "mild", name: "轻度抑郁", summary: "存在一定程度的低落情绪或兴趣减退，生活影响尚可控。建议增加户外活动、社交与自我关怀，若持续两周以上或加重，可咨询心理专业人士。" },
+        { min: 10, max: 14, level: "moderate", name: "中度抑郁", summary: "抑郁症状已较明显，可能影响工作学习与人际。强烈建议尽快咨询心理医生或精神科医生，接受专业评估。" },
+        { min: 15, max: 19, level: "moderately-severe", name: "中重度抑郁", summary: "症状明显且持续，日常生活明显受扰。建议立即预约心理/精神科专业评估，考虑药物与心理治疗。" },
+        { min: 20, max: 27, level: "severe", name: "重度抑郁", summary: "症状严重，需高度重视。请务必尽快前往精神科就诊，同时向亲友寻求支持。若第 9 题得分 ≥1，请立即联系专业心理援助。" }
+      ],
+      warnings: [
+        { question: 9, threshold: 1, text: "您在第 9 题（“有不如死掉或用某种方式伤害自己的念头”）勾选了非零选项，可能存在自伤风险。请尽快联系专业心理援助或精神科医生（可拨打 12356 全国心理援助热线）。" }
+      ]
+    },
+    questions: [
+      q("做事时提不起劲或没有兴趣", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("感到心情低落、沮丧或绝望", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("入睡困难、睡不安或睡得过多", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("感觉疲倦或没有活力", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("食欲不振或吃太多", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("觉得自己很糟，或觉得自己很失败，或让自己、家人失望", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("对事物专注有困难，例如阅读报纸或看电视时", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("行动或说话速度缓慢到别人已经察觉；或刚好相反——变得比平日更烦躁或坐立不安、动来动去", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天")),
+      q("有不如死掉或用某种方式伤害自己的念头", opts4("完全没有", "好几天", "一半以上的天数", "几乎每天"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "gad7",
+    name: "GAD-7 广泛性焦虑量表",
+    icon: "G7",
+    color: "#ff9500",
+    description: "7 道题，评估最近两周的焦虑症状。收录于北京市地方标准 DB11/T 1723-2020。",
+    time: "约 1 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 21,
+      reversed: [],
+      levels: [
+        { min: 0, max: 4, level: "none", name: "没有焦虑", summary: "近期焦虑水平正常，未呈现临床意义的紧张担忧。" },
+        { min: 5, max: 9, level: "mild", name: "轻度焦虑", summary: "存在轻度紧张与担忧，多数情况仍可自我调节。建议练习深呼吸、正念放松，保持运动。" },
+        { min: 10, max: 14, level: "moderate", name: "中度焦虑", summary: "焦虑已较明显，可能影响睡眠与专注。建议寻求心理咨询或精神科专业评估。" },
+        { min: 15, max: 21, level: "severe", name: "重度焦虑", summary: "焦虑水平较高，常伴明显的躯体紧张与不安。请尽快咨询精神科/心理专业人士，接受系统干预。" }
+      ]
+    },
+    questions: [
+      q("感觉紧张、焦虑或急切", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("不能停止或控制担忧", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("对各种事情担忧过多", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("很难放松下来", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("由于不安而无法静坐", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("变得容易烦恼或急躁", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天")),
+      q("感到似乎有可怕的事情会发生而害怕", opts4("完全不会", "好几天", "一半以上的天数", "几乎每天"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "isi",
+    name: "ISI 失眠严重程度指数",
+    icon: "IS",
+    color: "#5e5ce6",
+    description: "7 道题，评估最近两周的失眠严重程度。中文版经台湾学者信效度验证（台中荣总医院采用）。",
+    time: "约 2 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 28,
+      reversed: [],
+      levels: [
+        { min: 0, max: 7, level: "none", name: "无明显临床失眠", summary: "睡眠整体状况良好，未达临床失眠水平。保持规律作息即可。" },
+        { min: 8, max: 14, level: "mild", name: "阈下失眠（轻度）", summary: "存在轻度睡眠困扰。建议练习放松、睡前减少屏幕使用、规律作息等改善睡眠卫生。" },
+        { min: 15, max: 21, level: "moderate", name: "中度失眠", summary: "失眠问题已较明显，可能影响白天功能。建议寻求睡眠医学或身心科专业评估。" },
+        { min: 22, max: 28, level: "severe", name: "重度失眠", summary: "失眠严重且持续影响生活。请尽快咨询睡眠医学或精神科医生，评估是否需要系统治疗。" }
+      ]
+    },
+    questions: [
+      q("难以入睡的困难程度", opts5("无", "轻微", "中度", "严重", "非常严重")),
+      q("维持睡眠的困难程度（容易醒来）", opts5("无", "轻微", "中度", "严重", "非常严重")),
+      q("太早醒来的困难程度", opts5("无", "轻微", "中度", "严重", "非常严重")),
+      q("您对目前睡眠型态的满意/不满意程度", opts5("很满意", "满意", "中等", "不满意", "非常不满意")),
+      q("您的失眠问题在多大程度上影响了日常功能（如白天疲倦、情绪、工作能力、专注力、记忆力等）", opts5("完全没有", "轻微", "中度", "严重", "非常严重")),
+      q("跟别人比起来，您认为您的失眠问题有多明显", opts5("完全没有", "轻微", "中度", "严重", "非常严重")),
+      q("您对目前的失眠问题有多担心/困扰", opts5("完全没有", "轻微", "中度", "严重", "非常严重"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "sad",
+    name: "SAD 社交回避及苦恼量表",
+    icon: "SA",
+    color: "#32ade6",
+    description: "28 道是/否题，评估社交回避与社交苦恼程度。Watson & Friend（1969）编制，中文版经彭纯子等修订。",
+    time: "约 4 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 28,
+      reversed: [1, 3, 4, 6, 7, 9, 12, 15, 17, 19, 22, 25, 27, 28],
+      subscales: [
+        { key: "avoid", label: "社交回避", max: 14, items: [2, 4, 8, 9, 13, 17, 18, 19, 21, 22, 24, 25, 26, 27] },
+        { key: "distress", label: "社交苦恼", max: 14, items: [1, 3, 5, 6, 7, 10, 11, 12, 14, 15, 16, 20, 23, 28] }
+      ],
+      levels: [
+        { min: 0, max: 10, level: "low", name: "低水平", summary: "社交回避与苦恼程度较低，能够较自在参与社交场合。" },
+        { min: 11, max: 20, level: "medium", name: "中等水平", summary: "存在中等程度的社交回避或苦恼，某些社交场合会感到明显紧张，可能倾向回避。可尝试渐进式社交练习与正念脱敏。" },
+        { min: 21, max: 28, level: "high", name: "高水平", summary: "社交回避与苦恼水平较高，可能显著影响人际与工作学习。建议寻求心理咨询（如认知行为疗法）系统改善。" }
+      ]
+    },
+    questions: [
+      q("即使在不熟悉的社交场合里，我仍然感到放松", yn()),
+      q("我尽量避免迫使我参加交际应酬的情形", yn()),
+      q("我同陌生人在一起时很容易放松", yn()),
+      q("我并不特别想去回避人们", yn()),
+      q("我通常发现社交场合令人心烦意乱", yn()),
+      q("在社交场合我通常感觉平静及舒适", yn()),
+      q("在同异性交谈时，我通常感觉放松", yn()),
+      q("我尽量避免与别人讲话，除非特别熟", yn()),
+      q("如果有同新人聚会的机会，我会抓住的", yn()),
+      q("在非正式的聚会上如有异性参加，我通常会觉得焦虑和紧张", yn()),
+      q("与人们在一起时我通常感到焦虑，除非与他们特别熟", yn()),
+      q("我与一群人在一起时通常感到放松", yn()),
+      q("我经常想离开人群", yn()),
+      q("我置身于不认识的人群中时，通常感到不自在", yn()),
+      q("在初次遇见某些人时，我通常是放松的", yn()),
+      q("被介绍给别人会使我感到紧张和焦虑", yn()),
+      q("尽管满房间都是生人，我可能还是会进去", yn()),
+      q("我会避免走上前去加入到一大群人中间", yn()),
+      q("当上级想同我谈话时，我很高兴与他谈话", yn()),
+      q("当与一群人在一起时，我通常感觉忐忑不安", yn()),
+      q("我喜欢躲开人群", yn()),
+      q("在晚上或社交聚会上与人们交谈对我不成问题", yn()),
+      q("在一大群人中间，我极少能感到自在", yn()),
+      q("我经常想出一些借口以回避社交活动", yn()),
+      q("我有时充当为人们相互介绍的角色", yn()),
+      q("我尽量避开正式的社交场合", yn()),
+      q("我通常参加我所能参加的各种社会交往，不管是什么活动，能去就去", yn()),
+      q("我发现同他人在一起时放松很容易", yn())
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "sds",
+    name: "SDS 抑郁自评量表",
+    icon: "SD",
+    color: "#ff3b30",
+    description: "Zung 编制的 20 题抑郁自评量表，评估最近一周的抑郁症状。中国常模广泛用于临床。",
+    time: "约 4 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 80,
+      standardScore: function (raw) { return Math.floor(raw * 1.25); },
+      reversed: [2, 5, 6, 11, 12, 14, 16, 17, 18, 20],
+      levels: [
+        { min: 0, max: 52, level: "normal", name: "正常（无抑郁）", summary: "情绪状态在正常范围内，无明显抑郁表现。" },
+        { min: 53, max: 62, level: "mild", name: "轻度抑郁", summary: "存在轻度抑郁情绪，生活影响有限。建议增加运动、规律作息、保持社交，若持续可寻求心理支持。" },
+        { min: 63, max: 72, level: "moderate", name: "中度抑郁", summary: "抑郁症状明显，可能影响工作、学习与睡眠食欲。建议尽快咨询心理/精神科专业人士。" },
+        { min: 73, max: 100, level: "severe", name: "重度抑郁", summary: "抑郁症状严重，请务必尽快前往精神科就诊。特别关注第 19 题（轻生念头），若得分 ≥3 需立即寻求专业援助。" }
+      ],
+      warnings: [
+        { question: 19, threshold: 3, text: "您在第 19 题（“我认为如果我死了，别人会过得好些”）得分较高，轻生念头需要高度重视。请立即联系精神科医生或专业心理援助，并向亲友寻求支持。" }
+      ]
+    },
+    questions: [
+      q("我觉得闷闷不乐，情绪低沉", lk4("少部分时间")),
+      q("我觉得一天中早晨最好", lk4("少部分时间")),
+      q("我一阵阵哭出来或觉得想哭", lk4("少部分时间")),
+      q("我晚上睡眠不好", lk4("少部分时间")),
+      q("我吃得跟平常一样多", lk4("少部分时间")),
+      q("我与异性密切接触时和以往一样感到愉快", lk4("少部分时间")),
+      q("我发觉我的体重在下降", lk4("少部分时间")),
+      q("我有便秘的苦恼", lk4("少部分时间")),
+      q("我心跳比平常快", lk4("少部分时间")),
+      q("我无缘无故地感到疲乏", lk4("少部分时间")),
+      q("我的头脑跟平常一样清楚", lk4("少部分时间")),
+      q("我觉得经常做的事并没有困难", lk4("少部分时间")),
+      q("我觉得不安而平静不下来", lk4("少部分时间")),
+      q("我对将来抱有希望", lk4("少部分时间")),
+      q("我比平常容易生气激动", lk4("少部分时间")),
+      q("我觉得做出决定是容易的", lk4("少部分时间")),
+      q("我觉得自己是个有用的人，有人需要我", lk4("少部分时间")),
+      q("我的生活过得很有意思", lk4("少部分时间")),
+      q("我认为如果我死了，别人会过得好些", lk4("少部分时间")),
+      q("平常感兴趣的事我仍然感兴趣", lk4("少部分时间"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "sas",
+    name: "SAS 焦虑自评量表",
+    icon: "SA2",
+    color: "#ff9500",
+    description: "Zung 编制的 20 题焦虑自评量表，评估最近一周的焦虑症状。中国常模广泛用于临床。",
+    time: "约 4 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 80,
+      standardScore: function (raw) { return Math.floor(raw * 1.25); },
+      reversed: [5, 9, 13, 17, 19],
+      levels: [
+        { min: 0, max: 49, level: "normal", name: "正常", summary: "焦虑水平正常，未见临床意义的紧张不安。" },
+        { min: 50, max: 59, level: "mild", name: "轻度焦虑", summary: "存在轻度焦虑，偶有紧张、心悸等表现，多可自行调节。建议练习放松训练、规律运动。" },
+        { min: 60, max: 69, level: "moderate", name: "中度焦虑", summary: "焦虑症状较明显，可能伴躯体不适与睡眠问题。建议寻求心理咨询或精神科专业评估。" },
+        { min: 70, max: 100, level: "severe", name: "重度焦虑", summary: "焦虑水平较高，躯体与情绪症状显著。请尽快咨询精神科/心理专业人士。" }
+      ]
+    },
+    questions: [
+      q("我觉得比平时容易紧张和着急", lk4("小部分时间")),
+      q("我无缘无故地感到害怕", lk4("小部分时间")),
+      q("我容易心里烦乱或觉得惊恐", lk4("小部分时间")),
+      q("我觉得我可能将要发疯", lk4("小部分时间")),
+      q("我觉得一切都很好，也不会发生什么不幸", lk4("小部分时间")),
+      q("我手脚发抖打颤", lk4("小部分时间")),
+      q("我因为头痛、颈痛和背痛而苦恼", lk4("小部分时间")),
+      q("我感觉容易衰弱和疲乏", lk4("小部分时间")),
+      q("我觉得心平气和，并且容易安静坐着", lk4("小部分时间")),
+      q("我觉得心跳得快", lk4("小部分时间")),
+      q("我因为一阵阵头晕而苦恼", lk4("小部分时间")),
+      q("我有过晕倒发作，或觉得要晕倒似的", lk4("小部分时间")),
+      q("我呼气吸气都感到很容易", lk4("小部分时间")),
+      q("我手脚麻木和刺痛", lk4("小部分时间")),
+      q("我因胃痛和消化不良而苦恼", lk4("小部分时间")),
+      q("我常常要小便", lk4("小部分时间")),
+      q("我的手常常是干燥温暖的", lk4("小部分时间")),
+      q("我脸红发热", lk4("小部分时间")),
+      q("我容易入睡并且一夜睡得很好", lk4("小部分时间")),
+      q("我做恶梦", lk4("小部分时间"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "ybocs",
+    name: "Y-BOCS 耶鲁-布朗强迫症量表",
+    icon: "YB",
+    color: "#af52de",
+    description: "10 道题，分别评估强迫观念与强迫行为的严重程度。Goodman（1989）编制，自评版结果仅作初步参考。",
+    time: "约 3 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 40,
+      reversed: [],
+      subscales: [
+        { key: "obsession", label: "强迫观念", max: 20, items: [1, 2, 3, 4, 5] },
+        { key: "compulsion", label: "强迫行为", max: 20, items: [6, 7, 8, 9, 10] }
+      ],
+      levels: [
+        { min: 0, max: 7, level: "subclinical", name: "亚临床（正常范围）", summary: "未呈现临床意义的强迫症状。" },
+        { min: 8, max: 15, level: "mild", name: "轻度强迫症状", summary: "存在轻度强迫观念或行为，已具临床意义，可考虑专业评估与认知行为治疗（暴露与反应预防 ERP 是一线方法）。" },
+        { min: 16, max: 23, level: "moderate", name: "中度强迫症状", summary: "强迫症状明显，可能影响日常生活。建议精神科/心理专业人士系统评估，考虑 ERP 与药物联合干预。" },
+        { min: 24, max: 31, level: "severe", name: "重度强迫症状", summary: "症状严重干扰生活。请尽快就诊精神科，接受规范治疗。" },
+        { min: 32, max: 40, level: "extreme", name: "极重度强迫症状", summary: "症状极重，几乎持续存在且功能严重受损。务必尽快就医。" }
+      ]
+    },
+    questions: [
+      q("每天花多少时间在强迫观念（反复出现的想法/念头）上？", opts5("无", "每天 1 小时以内", "每天 1-3 小时", "每天 3-8 小时", "每天 8 小时以上")),
+      q("强迫观念对您的学习、工作或人际交往的干扰程度？", opts5("无", "轻度", "中度但可应对", "明显受损", "几乎丧失功能")),
+      q("强迫观念让您感到痛苦或焦虑的程度？", opts5("无", "轻微", "中度但可承受", "严重", "近乎持续、令人崩溃")),
+      q("您有多努力去抵抗强迫观念？", opts5("总是抵抗", "大部分时间抵抗", "有时抵抗", "经常屈服", "完全屈服")),
+      q("您对强迫观念的控制能力？", opts5("完全控制", "大部分能控制", "部分能控制", "很少能控制", "完全无法控制")),
+      q("每天花多少时间在强迫行为（反复做的动作/检查等）上？", opts5("无", "每天 1 小时以内", "每天 1-3 小时", "每天 3-8 小时", "每天 8 小时以上")),
+      q("强迫行为对您的学习、工作或人际交往的干扰程度？", opts5("无", "轻度", "中度但可应对", "明显受损", "几乎丧失功能")),
+      q("若阻止您进行强迫行为，您会感到焦虑或痛苦的程度？", opts5("无", "轻微", "中度但可承受", "严重", "近乎持续、令人崩溃")),
+      q("您有多努力去抵抗强迫行为？", opts5("总是抵抗", "大部分时间抵抗", "有时抵抗", "经常屈服", "完全屈服")),
+      q("您对强迫行为的控制能力？", opts5("完全控制", "大部分能控制", "部分能控制", "很少能控制", "完全无法控制"))
+    ],
+    interpretation: {}
+  });
+
+  window.TESTS.push({
+    id: "ymrs",
+    name: "YMRS 杨氏躁狂量表",
+    icon: "YM",
+    color: "#ff2d55",
+    description: "11 道题，评估近 48 小时内的躁狂症状（含双倍权重题）。Young（1978）编制，自评版仅作初步筛查参考。",
+    time: "约 3 分钟",
+    scoring: {
+      type: "total",
+      maxScore: 60,
+      reversed: [],
+      levels: [
+        { min: 0, max: 11, level: "remission", name: "缓解/极轻", summary: "未见明显躁狂表现，情绪与精力水平在正常范围。" },
+        { min: 12, max: 19, level: "mild", name: "轻度", summary: "存在轻度躁狂倾向（如精力增加、话多、睡眠减少），建议留意情绪波动规律，必要时咨询精神科。" },
+        { min: 20, max: 29, level: "moderate", name: "中度", summary: "躁狂症状较明显，可能影响判断与行为。建议尽快精神科专业评估。" },
+        { min: 30, max: 39, level: "significant", name: "显著（重度）", summary: "躁狂症状显著，可能伴冲动或夸大行为。请尽快就医。" },
+        { min: 40, max: 60, level: "extreme", name: "极重度", summary: "症状极重，需立即寻求精神科紧急评估与干预。" }
+      ]
+    },
+    questions: [
+      q("最近两天您的心情是否异常高涨、乐观或自信？", opts5("无", "轻微或可能增高", "明确主观增高，乐观自信、愉快合宜", "高涨且与环境不协调，爱开玩笑", "欣快，不适当发笑或唱歌")),
+      q("最近两天您是否觉得精力旺盛、活动增多？", opts5("无", "主观感觉增加", "活跃、手势增多", "精力过剩、时有活动过多、不安宁（尚可安静）", "运动性兴奋、持续活动过多（无法安静）")),
+      q("最近两天您的性兴趣是否增加？", opts5("正常无增加", "轻度或可能增加", "主观感到肯定增加", "自发谈论性话题、详细描述", "明显性举动")),
+      q("最近两天您的睡眠是否减少？", opts5("无减少", "比平时少 1 小时以内", "比平时少 1 小时以上", "自感睡眠需求减少", "否认需要睡眠")),
+      q("最近两天您是否容易发怒、不耐烦？", [{ label: "无", value: 0 }, { label: "主观感到易激惹", value: 2 }, { label: "检查/交谈中有时易激惹，近期有愤怒发作", value: 4 }, { label: "经常不耐烦、回答简短生硬", value: 6 }, { label: "敌意、不合作", value: 8 }]),
+      q("最近两天您是否话多、语速快？", [{ label: "无增多", value: 0 }, { label: "感觉话多", value: 2 }, { label: "时有语速语量增加或啰嗦", value: 4 }, { label: "言语紧迫、持续增加、难以打断", value: 6 }, { label: "急迫、无法打断、说个不停", value: 8 }]),
+      q("最近两天您的思维是否跳跃、难以集中？", opts5("无", "赘述、轻度分散、思维敏捷", "分散、缺乏思维目标、经常改变话题、思维加速", "思维奔逸、离题、难以跟上、音联/模仿言语", "思维不连贯、无法交流")),
+      q("最近两天您是否有特别计划、夸大或偏执想法？", [{ label: "正常", value: 0 }, { label: "可疑的计划、新的兴趣", value: 2 }, { label: "特殊计划、超宗教观念", value: 4 }, { label: "夸大或偏执观念、牵连观念", value: 6 }, { label: "妄想、幻觉", value: 8 }]),
+      q("最近两天您是否有挑衅或攻击行为？", [{ label: "无、合作", value: 0 }, { label: "好讥讽、时常提高嗓门、戒备", value: 2 }, { label: "要求过多、在环境中威胁", value: 4 }, { label: "威胁他人、大声喊叫、难以沟通", value: 6 }, { label: "好斗、破坏性、无法沟通", value: 8 }]),
+      q("您现在的穿着仪表如何？", opts5("穿戴修饰得体", "稍微仪态不整", "修饰不佳、中度蓬乱、过分穿着", "穿戴蓬乱、衣冠不整", "完全不修边幅、奇装异服")),
+      q("您是否认为自己目前的状况需要关注/治疗？", opts5("自知力完好，承认有问题且需要治疗", "可能有问题", "承认行为有变化但否认有病", "承认可能有行为变化但仍否认有病", "完全否认任何变化"))
+    ],
+    interpretation: {}
+  });
+})();
+
 window.TEST_GROUPS = [
   { id: "hot", name: "热门测试", icon: "🔥", testIds: ["mbti"], open: true },
-  { id: "personality", name: "人格测试", icon: "🧠", testIds: ["attachment", "mbti"], open: true },
-  { id: "mental", name: "心理健康测试", icon: "💚", testIds: ["scl90", "mmpi2"], open: true }
+  { id: "personality", name: "人格测试", icon: "🧠", testIds: ["attachment", "mbti", "pdp"], open: true },
+  { id: "career", name: "职业测评", icon: "💼", testIds: ["holland"], open: true },
+  { id: "mental", name: "心理健康测试", icon: "💚", testIds: ["scl90", "mmpi2", "phq9", "gad7", "isi", "sad", "sds", "sas", "ybocs", "ymrs"], open: true }
 ];

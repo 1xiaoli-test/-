@@ -508,6 +508,32 @@
         : { error: "MMPI-2 计分引擎未加载" };
       return { mmpi2: res };
     }
+    if (scoring.type === "total") {
+      // 总分型：逐题累加（支持反向计分题与分量表）
+      var totalScore = 0;
+      var subScores = {};
+      answers.forEach(function (idx, qi) {
+        if (idx === null || idx === undefined) return;
+        var q = test.questions[qi];
+        var opt = q.options[idx];
+        if (!opt || opt.value === undefined || opt.value === null) return;
+        var v = opt.value;
+        // 反向计分题：reversed 数组存放 1-based 题号，反转公式 = (max+min) - 原始分
+        if (scoring.reversed && scoring.reversed.indexOf(qi + 1) !== -1) {
+          var vals = q.options.map(function (o) { return (typeof o.value === "number") ? o.value : 0; });
+          var minV = Math.min.apply(null, vals);
+          var maxV = Math.max.apply(null, vals);
+          v = (maxV + minV) - v;
+        }
+        totalScore += v;
+        if (scoring.subscales) {
+          scoring.subscales.forEach(function (ss) {
+            if (ss.items.indexOf(qi + 1) !== -1) subScores[ss.key] = (subScores[ss.key] || 0) + v;
+          });
+        }
+      });
+      return { totalScore: totalScore, subScores: subScores };
+    }
     return {};
   }
 
@@ -632,6 +658,64 @@
       }
     }
 
+    if (test.scoring.type === "total") {
+      var tRaw = raw.totalScore || 0;
+      record.totalScore = tRaw;
+      record.maxScore = test.scoring.maxScore || 0;
+      // 标准分（可选）：支持函数或倍率
+      if (test.scoring.standardScore !== undefined) {
+        var ss = test.scoring.standardScore;
+        record.standardScore = typeof ss === "function" ? ss(tRaw)
+          : (typeof ss === "number" ? Math.floor(tRaw * ss) : tRaw);
+      }
+      // 按 levels 分档
+      var lv = null;
+      var levels = test.scoring.levels || [];
+      for (var li = 0; li < levels.length; li++) {
+        var L = levels[li];
+        if (tRaw >= L.min && tRaw <= L.max) { lv = L; break; }
+      }
+      if (!lv && levels.length) {
+        lv = tRaw < levels[0].min ? levels[0] : levels[levels.length - 1];
+      }
+      if (lv) {
+        record.level = lv.level;
+        record.levelName = lv.name;
+        record.type = lv.level;
+        record.typeName = lv.name;
+        record.summary = lv.summary || "";
+      }
+      // 分量表（如 Y-BOCS 观念/行为、SAD 回避/苦恼）
+      if (test.scoring.subscales && raw.subScores) {
+        record.dimensions = test.scoring.subscales.map(function (ss) {
+          var s = raw.subScores[ss.key] || 0;
+          return {
+            key: ss.key,
+            label: ss.label,
+            score: s,
+            max: ss.max || 0,
+            percent: ss.max ? Math.min(100, Math.round(s / ss.max * 100)) : 0
+          };
+        });
+      }
+      // 关键条目警示（如 PHQ-9 第9题、SDS 第19题）
+      if (test.scoring.warnings) {
+        test.scoring.warnings.forEach(function (w) {
+          var ai = answers[w.question - 1];
+          if (ai === undefined || ai === null) return;
+          var wq = test.questions[w.question - 1];
+          var wo = wq.options[ai];
+          if (!wo || wo.value === undefined) return;
+          var wv = wo.value;
+          if (test.scoring.reversed && test.scoring.reversed.indexOf(w.question) !== -1) {
+            var wvals = wq.options.map(function (x) { return typeof x.value === "number" ? x.value : 0; });
+            wv = (Math.max.apply(null, wvals) + Math.min.apply(null, wvals)) - wv;
+          }
+          if (wv >= w.threshold) record.warning = w.text;
+        });
+      }
+    }
+
     return record;
   }
 
@@ -679,6 +763,17 @@
     html += '<div class="result-test-meta">' + esc(record.testName) + " · " + fmtTime(record.time) + "</div>";
     if (record.summary) html += '<div class="result-summary">' + esc(record.summary) + "</div>";
     html += "</div>";
+
+    // 总分型结果统计（PHQ-9 / GAD-7 / ISI / SAD / SDS / SAS / Y-BOCS / YMRS）
+    if (record.totalScore !== undefined) {
+      html += '<div class="result-section"><h3>测评结果</h3><div class="stat-grid">';
+      html += '<div class="stat-item"><div class="stat-value">' + record.totalScore + (record.maxScore ? " / " + record.maxScore : "") + '</div><div class="stat-label">总分</div></div>';
+      if (record.standardScore !== undefined) html += '<div class="stat-item"><div class="stat-value">' + record.standardScore + '</div><div class="stat-label">标准分</div></div>';
+      if (record.levelName) html += '<div class="stat-item"><div class="stat-value">' + esc(record.levelName) + '</div><div class="stat-label">分级</div></div>';
+      html += "</div>";
+      if (record.warning) html += '<div class="danger-box"><strong>重要提示：</strong>' + esc(record.warning) + "</div>";
+      html += "</div>";
+    }
 
     // 操作栏
     html += '<div class="result-actions">';
@@ -1035,7 +1130,13 @@
     if (fmt === "md") {
       var md = "# " + rec.testName + " 测试报告\n\n";
       md += "- 时间：" + fmtTime(rec.time) + "\n";
-      md += "- 结果：" + (rec.type ? rec.type + (rec.typeName ? " " + rec.typeName : "") : "-") + "\n\n";
+      md += "- 结果：" + (rec.type ? rec.type + (rec.typeName ? " " + rec.typeName : "") : "-") + "\n";
+      if (rec.totalScore !== undefined) {
+        md += "- 总分：" + rec.totalScore + (rec.maxScore ? " / " + rec.maxScore : "") + "\n";
+        if (rec.standardScore !== undefined) md += "- 标准分：" + rec.standardScore + "\n";
+      }
+      md += "\n";
+      if (rec.warning) md += "> ⚠️ " + rec.warning + "\n\n";
       if (rec.dimensions && rec.dimensions.length) {
         md += "## 维度得分\n\n";
         rec.dimensions.forEach(function (d) {
@@ -1071,6 +1172,8 @@
       (rec.type ? "<div style=\"font-size:40px;font-weight:800;color:#0071e3;margin:16px 0\">" + esc(rec.type) + "</div>" : "") +
       (rec.typeName ? "<h2 style=\"margin-bottom:4px\">" + esc(rec.typeName) + "</h2>" : "") +
       (rec.summary ? "<p>" + esc(rec.summary) + "</p>" : "") +
+      ((rec.totalScore !== undefined) ? "<div style=\"margin:14px 0;padding:12px 16px;background:#f5f5f7;border-radius:10px;font-size:14px\">总分：<strong>" + rec.totalScore + (rec.maxScore ? " / " + rec.maxScore : "") + "</strong>" + (rec.standardScore !== undefined ? " ｜ 标准分：<strong>" + rec.standardScore + "</strong>" : "") + (rec.levelName ? " ｜ 分级：<strong>" + esc(rec.levelName) + "</strong>" : "") + "</div>" : "") +
+      (rec.warning ? "<div style=\"margin:12px 0;padding:12px 16px;background:#fff1f0;border:1px solid #ffa39e;border-radius:10px;color:#a8071a;font-size:14px\"><strong>重要提示：</strong>" + esc(rec.warning) + "</div>" : "") +
       dimHtml + interpHtml +
       "<p style=\"color:#aaa;font-size:12px;margin-top:32px\">由测试小站生成 · 数据仅存于本地</p></body></html>";
     download(base + ".html", htmlDoc, "text/html;charset=utf-8");

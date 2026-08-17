@@ -1,0 +1,9 @@
+# 本地同步工具目录与配置
+\#SyncVersion/
+.stignore
+.stfolder/
+.stversions/
+
+# 系统文件
+Thumbs.db
+Desktop.ini
