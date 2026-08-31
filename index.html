@@ -2,8 +2,12 @@
 <html lang="zh-CN" data-theme="light" class=""><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>测试小站</title>
-<link rel="stylesheet" href="styles.css">
+<title>测试小站 · 专业心理测评</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20260825k">
 <script>
   // 尽早应用主题，避免刷新时闪烁（与系统偏好一致或用记忆值）
   (function () {
@@ -20,7 +24,7 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <button class="brand" data-nav="home">测试小站</button>
+    <button class="brand" data-nav="home"><span class="brand-dot"></span>测试小站</button>
     <div class="nav-wrap">
       <nav class="nav">
         <button class="nav-item" data-nav="home">首页</button>
@@ -38,11 +42,19 @@
 
 <main class="container">
 
-  <!-- 首页：测试列表 -->
+  <!-- 首页：Hero + 测试列表 -->
   <section id="view-home" class="view">
-    <div class="page-head">
-      <h1>心理测试小站</h1>
-      <p class="subtitle">选一个测试，开始探索自己</p>
+    <div class="hero">
+      <h1 class="hero-title">了解自己<br>是最值得花时间的事</h1>
+      <p class="hero-sub">专业心理测评工具，从人格、情感到心理健康<br>5 分钟开始探索真实的你</p>
+      <button class="btn primary hero-cta" id="hero-start" type="button">开始测试</button>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-num" id="hero-stat-tests">10+</span><span class="stat-label">专业量表</span></div>
+        <span class="hero-stat-sep"></span>
+        <div class="hero-stat"><span class="stat-num">5min</span><span class="stat-label">快速测评</span></div>
+        <span class="hero-stat-sep"></span>
+        <div class="hero-stat"><span class="stat-num">100%</span><span class="stat-label">本地隐私</span></div>
+      </div>
     </div>
     <div class="search-box">
       <span class="search-icon" aria-hidden="true">🔍</span>
@@ -84,6 +96,9 @@
 
   <!-- 结果页 -->
   <section id="view-result" class="view" hidden="">
+    <div class="result-topbar">
+      <button id="btn-result-home" class="btn-quit" type="button" aria-label="返回首页">← 返回首页 🏠</button>
+    </div>
     <div id="result-content"></div>
   </section>
 
@@ -111,7 +126,7 @@
       <label class="field-label" for="set-base-url">Base URL</label>
       <input id="set-base-url" class="field-input" placeholder="https://api.openai.com/v1" autocomplete="off">
       <label class="field-label" for="set-api-key">API Key</label>
-      <input id="set-api-key" class="field-input" type="password" placeholder="sk-..." autocomplete="off">
+      <form style="margin:0" onsubmit="return false"><input id="set-api-key" class="field-input" type="password" placeholder="sk-..." autocomplete="off" aria-label="API Key"></form>
       <label class="field-label" for="set-model">模型名</label>
       <input id="set-model" class="field-input" placeholder="gpt-4o-mini" autocomplete="off">
       <div class="settings-actions">
@@ -134,13 +149,6 @@
 
 </main>
 
-<footer class="foot">数据仅保存在本机浏览器 · 测试小站</footer>
-
-<script src="mmpi2-data.js"></script>
-<script src="mmpi2-score.js"></script>
-<script src="tests-data.js"></script>
-<script src="app.js"></script>
-
 <!-- 自定义模态对话框（替代原生 confirm） -->
 <div id="modal" class="modal" hidden="">
   <div id="modal-mask" class="modal-mask"></div>
@@ -153,5 +161,29 @@
     </div>
   </div>
 </div>
+
+<!-- 首页推荐弹窗：随机推荐 4 个测试 + 让我想想 -->
+<div id="pick-modal" class="modal pick-modal" hidden>
+  <div id="pick-mask" class="modal-mask"></div>
+  <div class="pick-box" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+    <div class="pick-head">
+      <div class="pick-eyebrow">为你推荐</div>
+      <h2 class="pick-title" id="pick-title">今天想探索哪一面？</h2>
+      <p class="pick-sub">随机挑了 4 个测试，选一个开始，或者慢慢逛</p>
+    </div>
+    <div class="pick-list" id="pick-list"></div>
+    <button class="pick-think" id="pick-think" type="button">
+      <span class="pick-think-icon">💭</span>
+      <span>让我想想</span>
+    </button>
+  </div>
+</div>
+
+<footer class="foot">数据仅保存在本机浏览器 · 测试小站</footer>
+
+<script src="mmpi2-data.js?v=20260825k"></script>
+<script src="mmpi2-score.js?v=20260825k"></script>
+<script src="tests-data.js?v=20260825k"></script>
+<script src="app.js?v=20260825k"></script>
 </body>
 </html>

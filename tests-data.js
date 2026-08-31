@@ -920,7 +920,7 @@ window.TESTS.push((function () {
         { min: 20, max: 27, level: "severe", name: "重度抑郁", summary: "症状严重，需高度重视。请务必尽快前往精神科就诊，同时向亲友寻求支持。若第 9 题得分 ≥1，请立即联系专业心理援助。" }
       ],
       warnings: [
-        { question: 9, threshold: 1, text: "您在第 9 题（“有不如死掉或用某种方式伤害自己的念头”）勾选了非零选项，可能存在自伤风险。请尽快联系专业心理援助或精神科医生（可拨打 12356 全国心理援助热线）。" }
+        { question: 9, threshold: 1, text: "我们注意到您在第 9 题中表达了一些不易的时刻。您的感受很重要，也值得被认真对待——如果需要，请随时拨打 12356 全国心理援助热线，或联系身边信任的人。您不必独自承受，有人愿意倾听和陪伴。" }
       ]
     },
     questions: [
@@ -1070,7 +1070,7 @@ window.TESTS.push((function () {
         { min: 73, max: 100, level: "severe", name: "重度抑郁", summary: "抑郁症状严重，请务必尽快前往精神科就诊。特别关注第 19 题（轻生念头），若得分 ≥3 需立即寻求专业援助。" }
       ],
       warnings: [
-        { question: 19, threshold: 3, text: "您在第 19 题（“我认为如果我死了，别人会过得好些”）得分较高，轻生念头需要高度重视。请立即联系精神科医生或专业心理援助，并向亲友寻求支持。" }
+        { question: 19, threshold: 3, text: "从您的作答来看，第 19 题反映出一些比较沉重的想法。这些念头并不意味着您真的想离开，而是说明此刻您承受着很大的压力。请给自己一个机会——联系精神科医生或专业心理援助，也可以先和信任的亲友聊一聊。您的存在对身边的人很重要。" }
       ]
     },
     questions: [
@@ -1216,9 +1216,116 @@ window.TESTS.push((function () {
   });
 })();
 
+/* ===== 七宗罪 vs 七美德 ===== */
+window.TESTS.push({
+  id: "sinsvirtues",
+  name: "七宗罪 vs 七美德",
+  icon: "⚖",
+  color: "#7c3aed",
+  description: "基于中世纪神学七宗罪与对位七美德的概念框架，通过35道生活化情境题，从14个维度(7罪+7美德)探索你内心的光明与欲望面。趣味人格测试，结果仅供娱乐与自我觉察参考。",
+  time: "约 5 分钟",
+  scoring: {
+    type: "dimension",
+    dimensions: [
+      { key: "PRIDE", label: "傲慢", max: 15 },
+      { key: "ENVY", label: "嫉妒", max: 10 },
+      { key: "WRATH", label: "暴怒", max: 15 },
+      { key: "SLOTH", label: "懒惰", max: 10 },
+      { key: "GREED", label: "贪婪", max: 10 },
+      { key: "GLUTTONY", label: "暴食", max: 10 },
+      { key: "LUST", label: "色欲", max: 10 },
+      { key: "HUMILITY", label: "谦卑", max: 15 },
+      { key: "CHARITY", label: "仁爱", max: 15 },
+      { key: "PATIENCE", label: "耐心", max: 5 },
+      { key: "DILIGENCE", label: "勤勉", max: 15 },
+      { key: "GENEROSITY", label: "慷慨", max: 10 },
+      { key: "TEMPERANCE", label: "节制", max: 15 },
+      { key: "CHASTITY", label: "贞洁", max: 20 }
+    ],
+    classify: function(s) {
+      var sk = ["PRIDE","ENVY","WRATH","SLOTH","GREED","GLUTTONY","LUST"];
+      var vk = ["HUMILITY","CHARITY","PATIENCE","DILIGENCE","GENEROSITY","TEMPERANCE","CHASTITY"];
+      var mx = {PRIDE:15,ENVY:10,WRATH:15,SLOTH:10,GREED:10,GLUTTONY:10,LUST:10,HUMILITY:15,CHARITY:15,PATIENCE:5,DILIGENCE:15,GENEROSITY:10,TEMPERANCE:15,CHASTITY:20};
+      var sn = {PRIDE:"傲慢",ENVY:"嫉妒",WRATH:"暴怒",SLOTH:"懒惰",GREED:"贪婪",GLUTTONY:"暴食",LUST:"色欲"};
+      var vn = {HUMILITY:"谦卑",CHARITY:"仁爱",PATIENCE:"耐心",DILIGENCE:"勤勉",GENEROSITY:"慷慨",TEMPERANCE:"节制",CHASTITY:"贞洁"};
+      function p(k){return Math.round(((s[k]||0)/mx[k])*100);}
+      var sp = sk.map(function(k){return{k:k,v:p(k)};}).sort(function(a,b){return b.v-a.v;});
+      var vp = vk.map(function(k){return{k:k,v:p(k)};}).sort(function(a,b){return b.v-a.v;});
+      var ts = sp[0], tv = vp[0];
+      var sa = Math.round(sp.reduce(function(a,x){return a+x.v;},0)/7);
+      var va = Math.round(vp.reduce(function(a,x){return a+x.v;},0)/7);
+      var df = va - sa;
+      var ds = df>=0?"+":"";
+      var dp = df>=0?"偏向光明面，你更倾向于用美德约束自己":"偏向欲望面，你更倾向于释放天性";
+      return {
+        type: sn[ts.k]+" · "+vn[tv.k],
+        typeName: "你的首罪是"+sn[ts.k]+"（"+ts.v+"分），首美德是"+vn[tv.k]+"（"+tv.v+"分）",
+        summary: "七美德平均"+va+"分，七宗罪平均"+sa+"分，差值 "+ds+df+"（"+dp+"）。你的内心是"+sn[ts.k]+"与"+vn[tv.k]+"的角力场。"
+      };
+    }
+  },
+  questions: [
+    { text: "即便手头资金充裕，面对心仪的物品，我也不会因为喜好就一次性大量购入。", options: (function(){var v=function(n){var o={};o.TEMPERANCE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "你和众人合作完成事情，最后所有人只称赞你：", options: [{label:"坦然接纳这份赞誉",value:{HUMILITY:1}},{label:"会主动说明其他人同样付出了努力",value:{HUMILITY:5}}] },
+    { text: "当同龄人在聚会中成为全场焦点时，我会下意识想夺回众人的关注。", options: (function(){var v=function(n){var o={};o.PRIDE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "长期与你暗自竞争的人突然陷入低谷：", options: [{label:"竞争归竞争，依旧会给予对方关心",value:{ENVY:1}},{label:"内心会稍稍放松，不会主动前去接触",value:{ENVY:5}}] },
+    { text: "面对没有明确截止日期的事务，我大多需要他人催促后才会着手处理。", options: (function(){var v=function(n){var o={};o.SLOTH=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "排队等候许久，有人直接插到你的前方：", options: [{label:"先出声提醒，对方不听再寻求工作人员处理",value:{WRATH:1}},{label:"当场上前阻拦，就算发生争执也无所谓",value:{WRATH:5}}] },
+    { text: "看到同龄人拥有我向往的生活状态，我会暂时选择不查看对方的动态。", options: (function(){var v=function(n){var o={};o.ENVY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "学习一项新技能，练习过程慢慢变得枯燥乏味：", options: [{label:"暂时停下练习，等待兴趣重新回来",value:{DILIGENCE:1}},{label:"适当降低练习目标，每天坚持完成少量训练",value:{DILIGENCE:5}}] },
+    { text: "遇到自己完全不了解的领域和话题，我能够坦然承认自己不懂，不会刻意掩饰。", options: (function(){var v=function(n){var o={};o.HUMILITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "抽奖额外抽到一份限量周边，身旁有人始终没能抽到：", options: [{label:"先自己留存，说不定往后会更有价值",value:{GENEROSITY:1}},{label:"愿意按原价转让给一直想要的对方",value:{GENEROSITY:5}}] },
+    { text: "计划被他人突然打乱时，我的说话语气会瞬间变得急躁、生硬。", options: (function(){var v=function(n){var o={};o.WRATH=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "朋友临时邀约通宵玩乐，但你次日已有安排：", options: [{label:"难得可以尽情放松，调整第二天的安排赴约",value:{TEMPERANCE:1}},{label:"只参与一段时间，按照原定计划准时离开",value:{TEMPERANCE:5}}] },
+    { text: "即便朋友反复询问我已经解释过的问题，我依旧可以耐心重新解答。", options: (function(){var v=function(n){var o={};o.PATIENCE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "本身拥有稳定恋情，又遇见一个令你格外心动的人：", options: [{label:"先保持联系，观察这份心动能否长久",value:{CHASTITY:1}},{label:"主动拉开距离，阻止情愫持续发酵",value:{CHASTITY:5}}] },
+    { text: "入手心仪的物品后，短暂满足后我很快就会渴望拥有新的物品。", options: (function(){var v=function(n){var o={};o.GREED=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "面对极具个人魅力的人的主动示好，即便没有长久发展的打算，我也会享受当下的暧昧氛围。", options: (function(){var v=function(n){var o={};o.LUST=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "聊到自己擅长的领域时，我希望身边人能够知晓我的能力优于大多数人。", options: (function(){var v=function(n){var o={};o.PRIDE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "即便无法理解朋友的人生理想，我也会静下心认真倾听对方的想法。", options: (function(){var v=function(n){var o={};o.CHARITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "面对喜欢的人迟迟不表态的情况，我可以克制自己，不会反复主动试探。", options: (function(){var v=function(n){var o={};o.CHASTITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "有人当众对我开过分的玩笑、刻意冒犯我时，我会立刻做出回击。", options: (function(){var v=function(n){var o={};o.WRATH=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "即便我并不喜欢、不认可某个人，也能客观承认对方观点中的合理之处。", options: (function(){var v=function(n){var o={};o.HUMILITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "聚餐吃到饱腹之后，如果有自己爱吃的菜品上桌，我依旧会继续进食。", options: (function(){var v=function(n){var o={};o.GLUTTONY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "遇到棘手的难题时，我会拆解为细小步骤逐步攻克，不会直接搁置放弃。", options: (function(){var v=function(n){var o={};o.DILIGENCE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "年纪比我小的人用说教、训导的口吻和我交流，我会立刻产生抵触情绪。", options: (function(){var v=function(n){var o={};o.PRIDE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "情绪低落、心情烦躁时，我会通过享用美食的方式缓解自身负面情绪。", options: (function(){var v=function(n){var o={};o.GLUTTONY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "对于闲置不用、但未来可能有用的物品，我通常不愿意赠予他人。", options: (function(){var v=function(n){var o={};o.GREED=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "在人际关系尚未明确敲定前，我不会依靠亲密互动换取不确定的安全感。", options: (function(){var v=function(n){var o={};o.CHASTITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "无人监督、没有硬性要求的长期计划，我也能坚持执行、稳步推进。", options: (function(){var v=function(n){var o={};o.DILIGENCE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "平日里关系普通的人遭到他人孤立时，我会主动上前亲近、善待对方。", options: (function(){var v=function(n){var o={};o.CHARITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "即便对方未来有可能超越我，我也愿意真诚分享自己实用的经验与技巧。", options: (function(){var v=function(n){var o={};o.GENEROSITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "面对突如其来的重大决策冲动，我会给自己一天的时间冷静思考，不急于定论。", options: (function(){var v=function(n){var o={};o.TEMPERANCE=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "只要对方足够吸引我，我会暂时忽略彼此适配度，优先遵从当下的感受。", options: (function(){var v=function(n){var o={};o.LUST=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "即便对他人心生好感、十分心动，我也会先确认对方是否单身，再进一步相处。", options: (function(){var v=function(n){var o={};o.CHASTITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "桌面或房间环境杂乱，只要不影响正常使用，我就不会刻意整理。", options: (function(){var v=function(n){var o={};o.SLOTH=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() },
+    { text: "朋友遇到棘手麻烦向我求助时，我愿意牺牲自己的空闲时间出手相助。", options: (function(){var v=function(n){var o={};o.CHARITY=n;return o;};return[{label:"非常像我",value:v(5)},{label:"比较像我",value:v(4)},{label:"一般/不好说",value:v(3)},{label:"不太像我",value:v(2)},{label:"完全不像我",value:v(1)}];})() }
+  ],
+  interpretation: {
+    dims: {
+      PRIDE: { name: "傲慢", high: "傲慢倾向明显，你对自己的能力有强烈的自信，渴望被认可和仰视，不喜欢被人忽视或低估。这种特质让你在人群中自带光芒，但也需警惕目中无人带来的关系损耗。", mid: "傲慢倾向处于中等水平，你既有自信的一面，也能在适当时候放下身段。保持这份平衡，既不过分张扬也不过分谦卑。", low: "傲慢倾向较低，值得肯定！你能够坦然接受自己的平凡与不完美，不刻意追求优越感，这种谦逊的品质让你在人际关系中备受欢迎。" },
+      ENVY: { name: "嫉妒", high: "嫉妒倾向较为明显，你容易将他人的生活状态与自己做比较，渴望拥有别人拥有的东西。适度的嫉妒可以成为前进的动力，但过度的攀比会让你陷入焦虑与不满。", mid: "嫉妒倾向处于中等水平，你偶尔会与他人比较，但不会让这种情绪主导你的生活。保持这份觉察，将注意力放在自己的成长上。", low: "嫉妒倾向较低，值得肯定！你很少与他人攀比，能够专注于自己的生活和节奏，拥有难得的内心平静与自足。" },
+      WRATH: { name: "暴怒", high: "暴怒倾向较为明显，你的情绪反应较为强烈，遇到不公或冒犯时容易瞬间爆发。这种直率让你的边界感非常清晰，但也可能因一时冲动而伤害关系。", mid: "暴怒倾向处于中等水平，你有自己的脾气和底线，但多数情况下能够控制情绪的表达。面对冲突时，你既有表达立场的能力，也有适可而止的理性。", low: "暴怒倾向较低，值得肯定！你的情绪稳定性很高，面对冲突和冒犯能够保持冷静，用理性而非冲动解决问题。这种温和的力量是你最大的财富。" },
+      SLOTH: { name: "懒惰", high: "懒惰倾向较为明显，你倾向于选择轻松舒适的生活方式，不愿给自己太多压力。这种松弛感让你活得自在，但可能错失一些需要坚持才能获得的成长机会。", mid: "懒惰倾向处于中等水平，你懂得享受生活，也有一定的行动力。在舒适与进取之间，你正在寻找属于自己的平衡点。", low: "懒惰倾向较低，值得肯定！你有着很强的自律和行动力，不需要外部督促也能保持高效。这种勤勉的品质让你在学习和工作中稳步前进。" },
+      GREED: { name: "贪婪", high: "贪婪倾向较为明显，你对拥有更多有着强烈的渴望，无论是物质、资源还是情感上的占有。这种欲望驱动你不断追求，但也需注意不要因过度索取而失去已有的珍贵之物。", mid: "贪婪倾向处于中等水平，你既有追求更好的欲望，也能在适当的时候知足。在想要与已有之间，你保持着相对健康的平衡。", low: "贪婪倾向较低，值得肯定！你懂得知足常乐，不执着于占有更多，能够欣赏和珍惜已经拥有的一切。这种淡泊的心态让你更加从容。" },
+      GLUTTONY: { name: "暴食", high: "暴食倾向较为明显，你倾向于通过食物或感官享受来调节情绪、获得满足。美食和舒适是生活中重要的慰藉，但需留意不要让短暂的满足变成长期的依赖。", mid: "暴食倾向处于中等水平，你享受美食和生活的小确幸，但不会过度沉溺。在享乐与自律之间，你保持着可贵的平衡。", low: "暴食倾向较低，值得肯定！你对感官享受有着清醒的节制，不会让口腹之欲左右自己的生活节奏。这种自律让你在健康管理上有着天然的优势。" },
+      LUST: { name: "色欲", high: "色欲倾向较为明显，你对情感和身体上的吸引力有着敏锐的感知，容易被激情和浪漫所驱动。这种热情让你的情感世界丰富而多彩，但也需警惕短暂的冲动带来的后续纠葛。", mid: "色欲倾向处于中等水平，你既有浪漫热情的一面，也保留着一定的理性和克制。在感性与理性之间，你有着属于自己的判断尺度。", low: "色欲倾向较低，值得肯定！你能够以理性驾驭情感，不轻易被外表的吸引力所左右，在选择关系时更加注重内在品质和长远契合度。" },
+      HUMILITY: { name: "谦卑", high: "谦卑方面表现良好，你能够真诚地认可他人的价值，不刻意彰显自己的优越，在团队中乐于分享功劳。这种谦逊的姿态让你赢得了他人的尊重与信任。", mid: "谦卑方面处于中等水平，你既有自信展示自己的时刻，也有虚心倾听他人的时候。保持这份弹性，在自我表达与谦逊之间找到最适合你的位置。", low: "谦卑方面需注意提升，你可能有较强的自我中心倾向，习惯性地将关注点放在自己身上。试着多倾听他人的声音，承认他人的价值，你会发现关系变得更加融洽。" },
+      CHARITY: { name: "仁爱", high: "仁爱方面表现良好，你有着温暖而真诚的利他之心，愿意在他人需要时伸出援手，不计较回报。这种善良和同理心是你最珍贵的品质之一。", mid: "仁爱方面处于中等水平，你关心他人，但也会保护自己的边界和精力。在助人与自保之间，你保持着健康的平衡。", low: "仁爱方面需注意提升，你可能更关注自己的需求和感受，对他人处境缺乏足够的同理心。试着多换位思考，主动关心身边的人，你会发现给予也是一种快乐。" },
+      PATIENCE: { name: "耐心", high: "耐心方面表现良好，你有着超出常人的耐心和包容力，能够从容应对繁琐和重复，不轻易被激怒或失去冷静。这种沉稳让你的关系更加和谐。", mid: "耐心方面处于中等水平，你在大多数情况下能够保持耐心，但面对特定的刺激或压力时可能会有急躁的倾向。", low: "耐心方面需注意提升，你对于等待和重复的容忍度较低，容易被琐事激怒或失去冷静。试着放慢节奏，给自己和他人多一些时间和空间。" },
+      DILIGENCE: { name: "勤勉", high: "勤勉方面表现良好，你有着强大的自律和执行力，能够坚持完成计划，不需要外部监督也能保持高效。这种踏实和坚韧是你实现目标的核心动力。", mid: "勤勉方面处于中等水平，你既有勤奋的一面，也有放松偷懒的时候。总体来说，你能够完成必要的任务，但长期坚持可能需要更多的自律。", low: "勤勉方面需注意提升，你在面对需要长期投入的任务时容易半途而废或拖延。试着将大目标拆解为小步骤，每天坚持一点点，逐步培养行动力。" },
+      GENEROSITY: { name: "慷慨", high: "慷慨方面表现良好，你乐于分享自己的资源、时间和经验，不太计较得失。这种开放和豁达让你在人际关系中积累了深厚的信任和善意。", mid: "慷慨方面处于中等水平，你愿意分享，但也会衡量和保留。在给予与自我保护之间，你保持着相对理性的态度。", low: "慷慨方面需注意提升，你可能对分享自己的资源有所保留，倾向于优先考虑自己的利益。试着在安全范围内多分享一些，你会发现给予带来的连接感比占有更令人满足。" },
+      TEMPERANCE: { name: "节制", high: "节制方面表现良好，你有着清醒的自我约束力，能够克制冲动，权衡利弊后再做决定。这种理性让你在消费、社交和生活节奏上都保持着健康的平衡。", mid: "节制方面处于中等水平，你大多数时候能够控制自己的冲动，但偶尔也会放纵一下。在约束与释放之间，你有着相对灵活的尺度。", low: "节制方面需注意提升，你在面对诱惑时容易冲动行事，缺乏足够的自我约束力。试着在做决定前给自己一段冷静的时间，让理性为你把关。" },
+      CHASTITY: { name: "贞洁", high: "贞洁方面表现良好，你在情感和亲密关系上保持着清醒和审慎，尊重自己和他人，不轻易被情感冲动所左右。这种自律让你在情感世界中更加从容和坚定。", mid: "贞洁方面处于中等水平，你在情感关系中有自己的原则，但也会在特定情境下有所松动。在理性与感性之间，你根据具体情况灵活调整。", low: "贞洁方面需注意提升，你在情感边界上可能较为模糊，容易因一时好感或冲动而陷入复杂的关系中。试着明确自己的情感底线，保护好内心的秩序。" }
+    },
+    types: {}
+  }
+});
+
 window.TEST_GROUPS = [
   { id: "hot", name: "热门测试", icon: "🔥", testIds: ["mbti"], open: true },
   { id: "personality", name: "人格测试", icon: "🧠", testIds: ["attachment", "mbti", "pdp"], open: true },
+  { id: "fun", name: "趣味测试", icon: "🎯", testIds: ["sinsvirtues"], open: true },
   { id: "career", name: "职业测评", icon: "💼", testIds: ["holland"], open: true },
   { id: "mental", name: "心理健康测试", icon: "💚", testIds: ["scl90", "mmpi2", "phq9", "gad7", "isi", "sad", "sds", "sas", "ybocs", "ymrs"], open: true }
 ];

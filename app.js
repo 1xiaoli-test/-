@@ -137,8 +137,36 @@
       else localStorage.setItem(LS_THEME, next);
     } catch (e) { /* ignore */ }
     applyTheme(next);
+    rerenderThemeRadar();
   }
   applyTheme(getTheme());
+
+  /* ---------- 雷达图主题适配（浅色/深色/跟随系统） ---------- */
+  function isDarkMode() {
+    var theme = getTheme();
+    if (theme === "dark") return true;
+    if (theme === "light") return false;
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    } catch (e) { return false; }
+  }
+  function rerenderThemeRadar() {
+    if (window.__currentRecord && window.__currentRecord.testId === "sinsvirtues") {
+      renderSinsRadar(window.__currentRecord);
+    }
+  }
+  var __systemThemeListenerAdded = false;
+  function setupSystemThemeListener() {
+    if (__systemThemeListenerAdded || !window.matchMedia) return;
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (!mq || typeof mq.addEventListener !== "function") return;
+    __systemThemeListenerAdded = true;
+    mq.addEventListener("change", function () {
+      if (getTheme() === "auto") rerenderThemeRadar();
+    });
+  }
+  setupSystemThemeListener();
+
   var themeBtn = $("theme-toggle");
   if (themeBtn) themeBtn.addEventListener("click", cycleTheme);
 
@@ -149,6 +177,7 @@
       clearAutoJump();
       state.test = null;
       state.answers = [];
+      document.documentElement.style.removeProperty("--test-accent");
     }
     Object.keys(views).forEach(function (k) {
       views[k].hidden = k !== name;
@@ -169,9 +198,9 @@
 
   /* ---------- 首页 ---------- */
   /* 测试卡片单卡渲染（供分组复用） */
-  function renderTestCard(t) {
+  function renderTestCard(t, isHot) {
     var card = document.createElement("button");
-    card.className = "test-card";
+    card.className = "test-card" + (isHot ? " is-hot" : "");
     card.style.setProperty("--card-accent", t.color || "#0071e3");
     card.innerHTML =
       '<span class="test-icon" style="background:' + (t.color || "#0071e3") + '">' + esc(t.icon || t.id.slice(0, 2).toUpperCase()) + "</span>" +
@@ -244,7 +273,7 @@
       body.className = "group-body";
       var grid = document.createElement("div");
       grid.className = "test-grid";
-      tests.forEach(function (t) { grid.appendChild(renderTestCard(t)); });
+      tests.forEach(function (t) { grid.appendChild(renderTestCard(t, g.id === "hot")); });
       body.appendChild(grid);
 
       group.appendChild(header);
@@ -367,6 +396,7 @@
   function _enterTestView() {
     showView("test");
     $("quiz-name").textContent = state.test.name;
+    document.documentElement.style.setProperty("--test-accent", state.test.color || "#0071e3");
     renderQuestion();
   }
 
@@ -375,7 +405,7 @@
     var q = t.questions[state.qIndex];
     var total = t.questions.length;
     var answeredCount = state.answers.filter(function (a) { return a !== null && a !== undefined; }).length;
-    var pct = Math.round(answeredCount / total * 100);
+    var pct = answeredCount === 0 ? 0 : Math.max(1, Math.round(answeredCount / total * 100));
 
     $("quiz-progress-bar").style.width = pct + "%";
     $("quiz-progress-text").textContent = "已完成 " + answeredCount + " / " + total + " 题";
@@ -441,6 +471,14 @@
       clearAutoJump();
       state.test = null;
       state.answers = [];
+      showView("home");
+    });
+  }
+
+  /* 结果页返回首页 */
+  var resultHomeBtn = $("btn-result-home");
+  if (resultHomeBtn) {
+    resultHomeBtn.addEventListener("click", function () {
       showView("home");
     });
   }
@@ -758,11 +796,39 @@
     var html = "";
 
     html += '<div class="result-hero">';
-    if (record.type) html += '<div class="result-type">' + esc(record.type) + "</div>";
+    if (record.type) html += '<div class="result-type">' + (record.testId === "sinsvirtues" ? "⚖️ " : "") + esc(record.type) + "</div>";
     if (record.typeName) html += '<div class="result-name">' + esc(record.typeName) + "</div>";
     html += '<div class="result-test-meta">' + esc(record.testName) + " · " + fmtTime(record.time) + "</div>";
     if (record.summary) html += '<div class="result-summary">' + esc(record.summary) + "</div>";
     html += "</div>";
+
+    // 七宗罪/七美德 摘要卡片（首罪 / 首美德 / 差值）
+    if (record.testId === "sinsvirtues") {
+      var sinKeys = ["PRIDE", "ENVY", "WRATH", "SLOTH", "GREED", "GLUTTONY", "LUST"];
+      var virKeys = ["HUMILITY", "CHARITY", "PATIENCE", "DILIGENCE", "GENEROSITY", "TEMPERANCE", "CHASTITY"];
+      var sinLabels = { PRIDE: "傲慢", ENVY: "嫉妒", WRATH: "暴怒", SLOTH: "懒惰", GREED: "贪婪", GLUTTONY: "暴食", LUST: "色欲" };
+      var virLabels = { HUMILITY: "谦卑", CHARITY: "仁爱", PATIENCE: "耐心", DILIGENCE: "勤勉", GENEROSITY: "慷慨", TEMPERANCE: "节制", CHASTITY: "贞洁" };
+      var sinEmojis = { PRIDE: "🦚", ENVY: "🐍", WRATH: "😡", SLOTH: "🦥", GREED: "💰", GLUTTONY: "🍽️", LUST: "💋" };
+      var virEmojis = { HUMILITY: "🌾", CHARITY: "💝", PATIENCE: "🕊️", DILIGENCE: "🐝", GENEROSITY: "🎁", TEMPERANCE: "🧘", CHASTITY: "🌸" };
+      var dimMap = {};
+      (record.dimensions || []).forEach(function (d) { dimMap[d.key] = d; });
+      var topSin = null, topVir = null;
+      sinKeys.forEach(function (k) { if (dimMap[k] && (!topSin || dimMap[k].percent > topSin.percent)) topSin = dimMap[k]; });
+      virKeys.forEach(function (k) { if (dimMap[k] && (!topVir || dimMap[k].percent > topVir.percent)) topVir = dimMap[k]; });
+      var sinAvg = Math.round(sinKeys.reduce(function (a, k) { return a + (dimMap[k] ? dimMap[k].percent : 0); }, 0) / 7);
+      var virAvg = Math.round(virKeys.reduce(function (a, k) { return a + (dimMap[k] ? dimMap[k].percent : 0); }, 0) / 7);
+      var diff = virAvg - sinAvg;
+      var diffSign = diff >= 0 ? "+" : "";
+      var diffLabel = diff >= 0 ? "偏向光明面" : "偏向欲望面";
+      var diffEmoji = diff >= 0 ? "☀️" : "🌙";
+      var sinEmoji = topSin ? (sinEmojis[topSin.key] || "😈") : "😈";
+      var virEmoji = topVir ? (virEmojis[topVir.key] || "😇") : "😇";
+      html += '<div class="sin-summary">';
+      html += '<div class="sin-summary-card sin-card"><div class="sin-card-emoji">' + sinEmoji + '</div><div class="sin-card-label">首罪</div><div class="sin-card-value">' + esc(topSin ? sinLabels[topSin.key] : "-") + '</div><div class="sin-card-score">' + (topSin ? topSin.percent : 0) + ' 分</div></div>';
+      html += '<div class="sin-summary-card vir-card"><div class="sin-card-emoji">' + virEmoji + '</div><div class="sin-card-label">首美德</div><div class="sin-card-value">' + esc(topVir ? virLabels[topVir.key] : "-") + '</div><div class="sin-card-score">' + (topVir ? topVir.percent : 0) + ' 分</div></div>';
+      html += '<div class="sin-summary-card diff-card"><div class="sin-card-emoji">' + diffEmoji + '</div><div class="sin-card-label">罪-美德差值</div><div class="sin-card-value">' + diffSign + diff + '</div><div class="sin-card-score">' + diffLabel + '</div></div>';
+      html += "</div>";
+    }
 
     // 总分型结果统计（PHQ-9 / GAD-7 / ISI / SAD / SDS / SAS / Y-BOCS / YMRS）
     if (record.totalScore !== undefined) {
@@ -771,17 +837,9 @@
       if (record.standardScore !== undefined) html += '<div class="stat-item"><div class="stat-value">' + record.standardScore + '</div><div class="stat-label">标准分</div></div>';
       if (record.levelName) html += '<div class="stat-item"><div class="stat-value">' + esc(record.levelName) + '</div><div class="stat-label">分级</div></div>';
       html += "</div>";
-      if (record.warning) html += '<div class="danger-box"><strong>重要提示：</strong>' + esc(record.warning) + "</div>";
+      if (record.warning) html += '<div class="danger-box"><strong>暖心提醒：</strong>' + esc(record.warning) + "</div>";
       html += "</div>";
     }
-
-    // 操作栏
-    html += '<div class="result-actions">';
-    html += '<button class="btn primary" onclick="window.__ttExport(\'html\')">导出 HTML 报告</button>';
-    html += '<button class="btn ghost" onclick="window.__ttExport(\'md\')">导出 Markdown</button>';
-    html += '<button class="btn ghost" onclick="window.__ttExport(\'json\')">导出 JSON</button>';
-    html += '<button class="btn ghost" onclick="showView(\'home\')">返回首页</button>';
-    html += "</div>";
 
     // 维度得分
     if (record.dimensions && record.dimensions.length) {
@@ -795,10 +853,19 @@
       html += "</div>";
     }
 
+    // 七宗罪/七美德 双雷达图
+    if (record.testId === "sinsvirtues") {
+      html += '<div class="result-section"><h3>双维雷达图</h3>';
+      html += '<div class="radar-wrap">';
+      html += '<div class="radar-card"><div class="radar-title">七宗罪</div><canvas id="radar-sins" class="radar-canvas"></canvas></div>';
+      html += '<div class="radar-card"><div class="radar-title">七美德</div><canvas id="radar-virtues" class="radar-canvas"></canvas></div>';
+      html += "</div></div>";
+    }
+
     // 内置解读
     var blocks = buildInterpretation(t, record);
     if (blocks && blocks.length) {
-      html += '<div class="result-section"><h3>详细解读</h3>';
+      html += '<div class="result-section" id="builtin-interpret"><h3>详细解读</h3>';
       blocks.forEach(function (b) {
         html += '<div class="interpret-block"><h4>' + esc(b.h) + "</h4><p>" + b.p + "</p></div>";
       });
@@ -809,16 +876,33 @@
     var llm = Store.get(LS_LLM, null);
     var hasLlm = llm && llm.baseUrl && llm.apiKey && llm.model;
     html += '<div class="llm-panel"><h3>AI 深度解读</h3>';
-    html += '<p class="block-desc">' + (hasLlm ? "已配置大模型接口，可生成个性化深度报告。" : "尚未配置大模型接口，可在「设置」中填写 OpenAI 兼容接口。") + "</p>";
-    html += '<button class="btn primary" id="btn-llm-go" ' + (hasLlm ? "" : "disabled") + ">生成深度解读</button>";
-    html += '<div id="llm-output"></div></div>';
+    html += '<p class="block-desc">' + (hasLlm ? "已配置大模型接口，结果页将自动生成个性化深度报告。" : "尚未配置大模型接口，可在「设置」中填写 OpenAI 兼容接口。") + "</p>";
+    html += '<button class="btn ghost" id="btn-llm-go">' + (hasLlm ? "生成深度解读" : "去设置页配置大模型接口") + "</button>";
+    html += '<div id="llm-output">' + (hasLlm ? "" : "点击上方按钮前往设置页配置后，即可自动生成个性化深度报告。") + "</div></div>";
+
+    // 导出操作区（独立框架，位于页面最底部）
+    html += '<div class="result-section result-export-section"><h3>导出报告</h3>';
+    html += '<div class="result-actions">';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'html\')">导出 HTML 报告</button>';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'md\')">导出 Markdown</button>';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'json\')">导出 JSON</button>';
+    html += "</div></div>";
 
     box.innerHTML = html;
+
+    if (record.testId === "sinsvirtues") renderSinsRadar(record);
 
     window.__currentRecord = record;
     window.__ttExport = function (fmt) { exportRecord(record, fmt); };
     var llmBtn = $("btn-llm-go");
-    if (llmBtn) llmBtn.addEventListener("click", function () { deepInterpret(record); });
+    if (llmBtn) {
+      llmBtn.addEventListener("click", function () {
+        if (!hasLlm) { showView("settings"); return; }
+        deepInterpret(record);
+      });
+    }
+    // 方案B：已配置大模型时自动触发 AI 深度解读
+    if (hasLlm) deepInterpret(record);
   }
 
   /* ---------- MMPI-2 专用结果渲染 ---------- */
@@ -832,14 +916,6 @@
     if (record.typeName) html += '<div class="result-name">' + esc(record.typeName) + "</div>";
     html += '<div class="result-test-meta">' + esc(record.testName) + " · " + fmtTime(record.time) + (record.gender ? " · " + (record.gender === "F" ? "女性常模" : "男性常模") : "") + "</div>";
     if (record.summary) html += '<div class="result-summary">' + esc(record.summary) + "</div>";
-    html += "</div>";
-
-    // 操作栏
-    html += '<div class="result-actions">';
-    html += '<button class="btn primary" onclick="window.__ttExport(\'html\')">导出 HTML 报告</button>';
-    html += '<button class="btn ghost" onclick="window.__ttExport(\'md\')">导出 Markdown</button>';
-    html += '<button class="btn ghost" onclick="window.__ttExport(\'json\')">导出 JSON</button>';
-    html += '<button class="btn ghost" onclick="showView(\'home\')">返回首页</button>';
     html += "</div>";
 
     if (!res || res.error) {
@@ -873,7 +949,7 @@
     });
     html += "</tbody></table>";
     if (v.status === "invalid") {
-      html += '<div class="warn-box"><strong>警告：</strong>本份作答未通过效度检验，临床量表结果不可解释。建议重新施测或由专业人员面谈核实。</div>';
+      html += '<div class="warn-box"><strong>温馨提示：</strong>本次作答的应答模式有些不一致，临床量表结果暂时无法准确解读。别担心，这不代表您有任何问题——如果愿意，可以在状态更放松时重新作答，或由专业人员通过面谈来更好地了解您的情况。</div>';
     }
     html += '<p class="text-muted" style="margin-top:10px;">' + esc(interp.k_notes || "") + "</p>";
     html += '<p class="text-muted">' + esc(interp.t_notes || "") + "</p>";
@@ -937,9 +1013,10 @@
         res.kbHits.forEach(function (s) {
           var items = s.hitItems.map(function (no) {
             var q = QUESTIONS.find(function (x) { return x.no === no; });
-            return "#" + no + " " + (q ? q.zh : "");
-          }).join("；");
-          html += "<p><strong>" + esc(s.baseAbbr + " " + s.nameZh) + "</strong>：" + esc(items) + "</p>";
+            return '<span class="hit-item"><span class="hit-no">#' + no + "</span> " + esc(q ? q.zh : "") + "</span>";
+          }).join("");
+          html += '<p class="hit-group"><strong>' + esc(s.baseAbbr + " " + s.nameZh) + "</strong></p>";
+          html += '<div class="hit-items">' + items + "</div>";
         });
       }
       if (res.lwHits && res.lwHits.length) {
@@ -947,16 +1024,25 @@
         res.lwHits.forEach(function (s) {
           var items = s.hitItems.map(function (no) {
             var q = QUESTIONS.find(function (x) { return x.no === no; });
-            return "#" + no + " " + (q ? q.zh : "");
-          }).join("；");
-          html += "<p><strong>" + esc(s.baseAbbr + " " + s.nameZh) + "</strong>：" + esc(items) + "</p>";
+            return '<span class="hit-item"><span class="hit-no">#' + no + "</span> " + esc(q ? q.zh : "") + "</span>";
+          }).join("");
+          html += '<p class="hit-group"><strong>' + esc(s.baseAbbr + " " + s.nameZh) + "</strong></p>";
+          html += '<div class="hit-items">' + items + "</div>";
         });
       }
     }
     html += "</div>";
 
     // 免责声明
-    html += '<div class="result-section warn-box"><strong>免责声明：</strong>' + esc(interp.disclaimer || "") + "</div>";
+    html += '<div class="result-section"><div class="warn-box"><strong>温馨提示：</strong>' + esc(interp.disclaimer || "") + "</div></div>";
+
+    // 导出操作区（独立框架，位于页面最底部）
+    html += '<div class="result-section result-export-section"><h3>导出报告</h3>';
+    html += '<div class="result-actions">';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'html\')">导出 HTML 报告</button>';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'md\')">导出 Markdown</button>';
+    html += '<button class="btn ghost" onclick="window.__ttExport(\'json\')">导出 JSON</button>';
+    html += "</div></div>";
 
     box.innerHTML = html;
     window.__currentRecord = record;
@@ -1000,9 +1086,10 @@
           var info = interp.dims[d.key];
           if (!info) return;
           var ratio = d.max ? d.score / d.max : 0;
-          if (ratio >= 0.6 && info.high) out.push({ h: d.label + " · 高分表现", p: info.high });
-          else if (ratio <= 0.4 && info.low) out.push({ h: d.label + " · 低分表现", p: info.low });
-          else if (info.mid) out.push({ h: d.label + " · 中间状态", p: info.mid });
+          var score = d.percent !== undefined ? d.percent : Math.round(ratio * 100);
+          if (ratio >= 0.6 && info.high) out.push({ h: d.label + " · 高分表现（" + score + "分）", p: info.high });
+          else if (ratio <= 0.4 && info.low) out.push({ h: d.label + " · 低分表现（" + score + "分）", p: info.low });
+          else if (info.mid) out.push({ h: d.label + " · 中间状态（" + score + "分）", p: info.mid });
         });
       }
     }
@@ -1173,7 +1260,7 @@
       (rec.typeName ? "<h2 style=\"margin-bottom:4px\">" + esc(rec.typeName) + "</h2>" : "") +
       (rec.summary ? "<p>" + esc(rec.summary) + "</p>" : "") +
       ((rec.totalScore !== undefined) ? "<div style=\"margin:14px 0;padding:12px 16px;background:#f5f5f7;border-radius:10px;font-size:14px\">总分：<strong>" + rec.totalScore + (rec.maxScore ? " / " + rec.maxScore : "") + "</strong>" + (rec.standardScore !== undefined ? " ｜ 标准分：<strong>" + rec.standardScore + "</strong>" : "") + (rec.levelName ? " ｜ 分级：<strong>" + esc(rec.levelName) + "</strong>" : "") + "</div>" : "") +
-      (rec.warning ? "<div style=\"margin:12px 0;padding:12px 16px;background:#fff1f0;border:1px solid #ffa39e;border-radius:10px;color:#a8071a;font-size:14px\"><strong>重要提示：</strong>" + esc(rec.warning) + "</div>" : "") +
+      (rec.warning ? "<div style=\"margin:12px 0;padding:12px 16px;background:rgba(255,245,240,0.85);border:1px solid rgba(255,200,180,0.5);border-radius:10px;color:#9c4a3f;font-size:14px\"><strong>暖心提醒：</strong>" + esc(rec.warning) + "</div>" : "") +
       dimHtml + interpHtml +
       "<p style=\"color:#aaa;font-size:12px;margin-top:32px\">由测试小站生成 · 数据仅存于本地</p></body></html>";
     download(base + ".html", htmlDoc, "text/html;charset=utf-8");
@@ -1380,22 +1467,234 @@
   function deepInterpret(rec) {
     var llm = Store.get(LS_LLM, null);
     var out = $("llm-output");
-    if (!llm || !llm.baseUrl) { out.textContent = "请先在设置页配置大模型接口"; return; }
+    var btn = $("btn-llm-go");
+    if (!llm || !llm.baseUrl || !llm.apiKey || !llm.model) {
+      out.textContent = "请先在设置页配置大模型接口";
+      if (btn) btn.disabled = false;
+      return;
+    }
+    if (btn) btn.disabled = true; // 生成中禁用，防止重复点击
     var t = window.TESTS.find(function (x) { return x.id === rec.testId; });
     var dimText = (rec.dimensions || []).map(function (d) { return d.label + " " + d.score + "/" + d.max; }).join("、");
     var prompt = "请基于以下心理测试结果，写一份详细的深度解读报告（中文，800字左右，分小节：核心特质、潜在盲区、发展建议、人际关系启示）。\n\n" +
       "测试：" + rec.testName + "\n" +
       "结果类型：" + rec.type + (rec.typeName ? "（" + rec.typeName + "）" : "") + "\n" +
-      "维度得分：" + (dimText || "无") + "\n\n" +
-      "请保持客观中立，避免过度绝对化的表述。";
-    out.textContent = "正在调用大模型生成深度解读，请稍候...";
+      "维度得分：" + (dimText || "无") + "\n";
+    if (rec.warning) {
+      prompt += "\n该结果存在风险提示：" + rec.warning + "\n";
+    }
+    prompt += "\n请保持客观中立，避免过度绝对化的表述。";
+    if (rec.warning) {
+      prompt += "\n注意：该结果存在风险提示，回复中请优先建议寻求专业心理援助，避免绝对化表述，不得给出诊断结论。";
+    }
+    out.textContent = "正在生成深度解读...";
     callLLM(llm, prompt).then(function (text) {
       out.textContent = text;
+      if (btn) btn.disabled = false;
     }).catch(function (err) {
-      out.textContent = "调用失败：" + err.message + "\n\n提示：若报跨域（CORS）错误，说明该接口不支持浏览器直连，可在支持 CORS 的接口服务中使用。";
+      var msg = String((err && err.message) || err);
+      if (/cors|跨域|failed to fetch|networkerror/i.test(msg)) {
+        out.textContent = "接口不支持浏览器直连（CORS）：" + msg + "\n\n提示：请在设置页配置支持 CORS（跨域）的 OpenAI 兼容接口，或改用支持浏览器直连的服务。\n\n已为您展示上方内置解读作为参考。";
+        var bi = document.getElementById("builtin-interpret");
+        if (bi) bi.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        out.textContent = "调用失败：" + msg + "\n\n可点击「生成深度解读」重试，或检查设置页中的接口配置。";
+      }
+      if (btn) btn.disabled = false;
     });
+  }
+
+  /* ---------- 七宗罪/七美德 雷达图（纯 Canvas 自绘，无外部依赖） ---------- */
+  function drawRadar(canvas, items, opts) {
+    if (!canvas) return;
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.clientWidth || 300, cssH = canvas.clientHeight || 300;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var w = cssW, h = cssH;
+    var cx = w / 2, cy = h / 2;
+    var radius = Math.min(cx, cy) - 38;
+    var n = items.length;
+    if (n < 3) return;
+    var angleStep = Math.PI * 2 / n;
+    var startAngle = -Math.PI / 2;
+    var o = opts || {};
+    var gridColor = o.gridColor || "rgba(150,150,170,0.25)";
+    var lineColor = o.color || "#7c3aed";
+    var fillColor = o.fillColor || "rgba(124,58,237,0.18)";
+    var labelColor = o.labelColor || "#444";
+    var rings = [0.2, 0.4, 0.6, 0.8, 1.0];
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 环形网格线
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    rings.forEach(function (r) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // 中心到顶点连线
+    for (var i = 0; i < n; i++) {
+      var a = startAngle + i * angleStep;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + radius * Math.cos(a), cy + radius * Math.sin(a));
+      ctx.stroke();
+    }
+
+    // 数据多边形
+    ctx.beginPath();
+    items.forEach(function (it, i) {
+      var a = startAngle + i * angleStep;
+      var r = radius * Math.max(0, Math.min(100, it.percent)) / 100;
+      var x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 顶点圆点 + 标签（智能对齐 + 钳制在画布内，保证 7 个维度标签完整可见）
+    ctx.font = "12px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+    items.forEach(function (it, i) {
+      var a = startAngle + i * angleStep;
+      var r = radius * Math.max(0, Math.min(100, it.percent)) / 100;
+      var x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = lineColor;
+      ctx.fill();
+      var cos = Math.cos(a), sin = Math.sin(a);
+      var text = it.label + " " + Math.round(it.percent);
+      var tw = ctx.measureText(text).width;
+      var pad = 6;
+      var tx = cx + (radius + 14) * cos;
+      var ty = cy + (radius + 14) * sin;
+      var align;
+      if (Math.abs(cos) < 0.3) {
+        // 上下两端：居中，并水平钳制
+        align = "center";
+        tx = Math.max(tw / 2 + pad, Math.min(w - tw / 2 - pad, tx));
+      } else if (cos > 0) {
+        // 右侧：左对齐，不越右边界
+        align = "left";
+        tx = Math.min(tx, w - tw - pad);
+      } else {
+        // 左侧：右对齐，不越左边界
+        align = "right";
+        tx = Math.max(tx, pad + tw);
+      }
+      ty = Math.max(10, Math.min(h - 8, ty));
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = labelColor;
+      ctx.fillText(text, tx, ty);
+    });
+  }
+
+  function renderSinsRadar(record) {
+    if (!record || record.testId !== "sinsvirtues") return;
+    var sinKeys = ["PRIDE", "ENVY", "WRATH", "SLOTH", "GREED", "GLUTTONY", "LUST"];
+    var virKeys = ["HUMILITY", "CHARITY", "PATIENCE", "DILIGENCE", "GENEROSITY", "TEMPERANCE", "CHASTITY"];
+    var sinLabels = { PRIDE: "傲慢", ENVY: "嫉妒", WRATH: "暴怒", SLOTH: "懒惰", GREED: "贪婪", GLUTTONY: "暴食", LUST: "色欲" };
+    var virLabels = { HUMILITY: "谦卑", CHARITY: "仁爱", PATIENCE: "耐心", DILIGENCE: "勤勉", GENEROSITY: "慷慨", TEMPERANCE: "节制", CHASTITY: "贞洁" };
+    var dims = {};
+    (record.dimensions || []).forEach(function (d) { dims[d.key] = d; });
+    var sinItems = sinKeys.map(function (k) { return { label: sinLabels[k], percent: dims[k] ? dims[k].percent : 0 }; });
+    var virItems = virKeys.map(function (k) { return { label: virLabels[k], percent: dims[k] ? dims[k].percent : 0 }; });
+    var dark = isDarkMode();
+    var sinColors = dark
+      ? { color: "#f472b6", fillColor: "rgba(244,114,182,0.14)", gridColor: "rgba(244,114,182,0.30)", labelColor: "#fbcfe8" }
+      : { color: "#c026d3", fillColor: "rgba(192,38,211,0.18)", gridColor: "rgba(192,38,211,0.22)", labelColor: "#9d174d" };
+    var virColors = dark
+      ? { color: "#38bdf8", fillColor: "rgba(56,189,248,0.14)", gridColor: "rgba(56,189,248,0.30)", labelColor: "#bae6fd" }
+      : { color: "#0ea5e9", fillColor: "rgba(14,165,233,0.18)", gridColor: "rgba(14,165,233,0.22)", labelColor: "#0c4a6e" };
+    drawRadar(document.getElementById("radar-sins"), sinItems, sinColors);
+    drawRadar(document.getElementById("radar-virtues"), virItems, virColors);
   }
 
   /* ---------- 初始化 ---------- */
   renderHome();
+
+  /* ---------- 首页推荐弹窗（随机 4 个测试 + 让我想想） ---------- */
+  var pickModal = $("pick-modal");
+  var pickList = $("pick-list");
+  var pickMask = $("pick-mask");
+  var pickThink = $("pick-think");
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function openPickModal() {
+    if (!pickModal || !pickList) return;
+    // 随机挑 4 个测试（不足 4 个则全取）
+    var pool = (window.TESTS || []).slice();
+    var picks = shuffle(pool).slice(0, Math.min(4, pool.length));
+    pickList.innerHTML = "";
+    picks.forEach(function (t, i) {
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "pick-card";
+      card.setAttribute("aria-label", "开始" + t.name + "测试");
+      card.innerHTML =
+        '<span class="pick-card-icon" style="background:' + esc(t.color || "#0071e3") + '">' + esc(t.icon || t.id.slice(0, 2).toUpperCase()) + "</span>" +
+        '<span class="pick-card-body">' +
+          '<span class="pick-card-name">' + esc(t.name) + "</span>" +
+          '<span class="pick-card-desc">' + esc(t.description || "") + "</span>" +
+        "</span>" +
+        '<span class="pick-card-meta">' +
+          '<span>' + esc(t.questions.length) + " 题</span>" +
+          '<span>' + esc(t.time || "") + "</span>" +
+          '<span class="pick-card-arrow">›</span>' +
+        "</span>";
+      card.addEventListener("click", function () {
+        pickModal.hidden = true;
+        startTest(t.id);
+      });
+      pickList.appendChild(card);
+    });
+    pickModal.hidden = false;
+  }
+
+  function closePickModal() {
+    if (pickModal) pickModal.hidden = true;
+  }
+
+  if (pickMask) pickMask.addEventListener("click", closePickModal);
+  if (pickThink) pickThink.addEventListener("click", function () {
+    closePickModal();
+    // 平滑滚动到搜索框位置（刚好露出测试列表顶部），而非直接跳到列表深处
+    var searchBox = document.querySelector(".search-box");
+    if (searchBox) {
+      var rect = searchBox.getBoundingClientRect();
+      var topbarH = document.querySelector(".topbar");
+      var offset = topbarH ? topbarH.offsetHeight : 60;
+      window.scrollTo({ top: Math.max(0, rect.top + window.pageYOffset - offset - 8), behavior: "smooth" });
+    }
+  });
+
+  /* Hero CTA：弹出随机推荐 */
+  var heroStart = $("hero-start");
+  if (heroStart) {
+    heroStart.addEventListener("click", function () {
+      openPickModal();
+    });
+  }
+  /* Hero 统计：动态更新测试总数 */
+  var heroStatTests = $("hero-stat-tests");
+  if (heroStatTests && window.TESTS) heroStatTests.textContent = window.TESTS.length + "+";
 })();

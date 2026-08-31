@@ -118,9 +118,9 @@ var MMPI2Score = (function () {
     var F = res.scalesMap["F"];
     if (F) {
       var cutoff = (gender === "F") ? 120 : 116;
-      var Fs = F.raw >= cutoff ? "invalid" : (F.raw >= 90 ? "caution" : "ok");
+      var Fs = (F.t !== null && F.t >= cutoff) ? "invalid" : (F.t !== null && F.t >= 90 ? "caution" : "ok");
       checks.push({ key: "F", label: "诈病 F", raw: F.raw, t: F.t, status: Fs,
-        note: Fs === "invalid" ? ("F 原始分 " + F.raw + " ≥ " + cutoff + "，无效") : (Fs === "caution" ? "F 高分，提示异常应答" : "正常") });
+        note: Fs === "invalid" ? ("F T=" + F.t + " ≥ " + cutoff + "，剖析图无效") : (Fs === "caution" ? ("F T=" + F.t + " ≥ 90，提示异常应答") : "正常") });
       if (Fs === "invalid") invalidFlags.push("F");
     }
 
@@ -152,9 +152,10 @@ var MMPI2Score = (function () {
     if (res.rin) {
       var vT = res.rin.VRIN.t;
       var vCut = (gender === "F") ? 87 : 85;
-      var vs = (vT !== null && vT >= vCut) ? "invalid" : "ok";
+      var vCaution = 75;
+      var vs = (vT !== null && vT >= vCut) ? "invalid" : (vT !== null && vT >= vCaution ? "caution" : "ok");
       checks.push({ key: "VRIN", label: "矛盾作答 VRIN", raw: res.rin.VRIN.raw, t: vT, status: vs,
-        note: vs === "invalid" ? ("VRIN T " + vT + " ≥ " + vCut + "，应答不一致，剖析图不可解释") : "正常" });
+        note: vs === "invalid" ? ("VRIN T " + vT + " ≥ " + vCut + "，应答不一致，剖析图不可解释") : (vs === "caution" ? ("VRIN T " + vT + " ≥ " + vCaution + "，应答一致性偏低") : "正常") });
       if (vs === "invalid") invalidFlags.push("VRIN");
 
       // TRIN
