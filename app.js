@@ -400,6 +400,75 @@
     renderQuestion();
   }
 
+  /* ---------- 7 点圆点刻度（answerStyle: "dots7"，参照 16personalities 官网） ---------- */
+  /* 圆点语义文字：只用于悬停提示与读屏，可视区始终只有「左端小字 ← 圆点刻度 → 右端小字」 */
+  var DOT_DEGREE_AGREE = ["完全同意", "同意", "有点同意", "中立", "有点不认同", "不认同", "完全不认同"];
+  function dotDegreeLabel(i, ends) {
+    var e0 = ends[0] || "", e1 = ends[1] || "";
+    if ((e0 === "同意" && e1 === "不认同") || (!e0 && !e1)) {
+      return DOT_DEGREE_AGREE[i] || ("第 " + (i + 1) + " 档");
+    }
+    if (i === 3) return "居中";
+    var strength = i < 3 ? (3 - i) : (i - 3);
+    var word = strength === 3 ? "完全偏向" : (strength === 2 ? "比较偏向" : "略微偏向");
+    return word + (i < 3 ? e0 : e1);
+  }
+
+  /* 左端小字 ← 圆点刻度 → 右端小字；点圆点即选中；题干/取值仍完全走 q.options[i].value */
+  function renderDots7(container, test, q) {
+    var cur = state.answers[state.qIndex];
+    var ends = q.scaleEnds || test.scaleEnds || ["", ""];
+    /* 两端文案较长（词对 / 情境短语）时改为上方双列排布，避免小字挤在刻度两侧 */
+    var longEnds = Math.max((ends[0] || "").length, (ends[1] || "").length) > 7;
+    container.className = "options-list dots-mode" + (longEnds ? " dots-stacked" : "");
+
+    var wrap = document.createElement("div");
+    wrap.className = "dots-scale";
+    wrap.setAttribute("role", "radiogroup");
+    wrap.setAttribute("aria-label", (ends[0] && ends[1]) ? ("7 档刻度：" + ends[0] + " ↔ " + ends[1]) : "请选择符合程度");
+
+    var left = document.createElement("span");
+    left.className = "dots-end dots-end-left";
+    left.textContent = ends[0] || "";
+    var right = document.createElement("span");
+    right.className = "dots-end dots-end-right";
+    right.textContent = ends[1] || "";
+
+    var track = document.createElement("div");
+    track.className = "dots-track";
+    var line = document.createElement("span");
+    line.className = "dots-line";
+    track.appendChild(line);
+
+    q.options.forEach(function (opt, i) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "dot" + (cur === i ? " active" : "");
+      dot.setAttribute("role", "radio");
+      dot.setAttribute("aria-checked", cur === i ? "true" : "false");
+      var degree = dotDegreeLabel(i, ends);
+      dot.setAttribute("aria-label", degree);
+      dot.title = degree;
+      dot.innerHTML = '<span class="dot-core"></span>';
+      dot.addEventListener("click", function () { selectOption(i); });
+      track.appendChild(dot);
+    });
+
+    /* 键盘可用性：焦点在刻度条上时用 ←/→ 逐档选择 */
+    track.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      var step = e.key === "ArrowRight" ? 1 : -1;
+      var base = (typeof cur === "number") ? cur : (step > 0 ? -1 : 7);
+      selectOption(Math.min(q.options.length - 1, Math.max(0, base + step)));
+    });
+
+    wrap.appendChild(left);
+    wrap.appendChild(track);
+    wrap.appendChild(right);
+    container.appendChild(wrap);
+  }
+
   function renderQuestion() {
     var t = state.test;
     var q = t.questions[state.qIndex];
@@ -419,13 +488,18 @@
 
     var opts = $("options");
     opts.innerHTML = "";
-    q.options.forEach(function (opt, i) {
-      var btn = document.createElement("button");
-      btn.className = "option-item" + (state.answers[state.qIndex] === i ? " selected" : "");
-      btn.innerHTML = '<span class="option-mark"></span><span>' + esc(opt.label) + "</span>";
-      btn.addEventListener("click", function () { selectOption(i); });
-      opts.appendChild(btn);
-    });
+    if (t.answerStyle === "dots7") {
+      renderDots7(opts, t, q);
+    } else {
+      opts.className = "options-list";
+      q.options.forEach(function (opt, i) {
+        var btn = document.createElement("button");
+        btn.className = "option-item" + (state.answers[state.qIndex] === i ? " selected" : "");
+        btn.innerHTML = '<span class="option-mark"></span><span>' + esc(opt.label) + "</span>";
+        btn.addEventListener("click", function () { selectOption(i); });
+        opts.appendChild(btn);
+      });
+    }
 
     $("btn-prev").disabled = state.qIndex === 0;
   }
@@ -433,6 +507,7 @@
   /* 自动跳转定时器：选中选项后延迟跳到下一题（让用户看到选中反馈） */
   var autoJumpTimer = null;
   var AUTO_JUMP_DELAY = 320;
+  var AUTO_JUMP_DELAY_DOTS = 400;  /* 圆点刻度：选中反馈更细腻，稍长一点 */
 
   function clearAutoJump() {
     if (autoJumpTimer) { clearTimeout(autoJumpTimer); autoJumpTimer = null; }
@@ -453,7 +528,7 @@
       } else {
         finishTest();
       }
-    }, AUTO_JUMP_DELAY);
+    }, (state.test && state.test.answerStyle === "dots7") ? AUTO_JUMP_DELAY_DOTS : AUTO_JUMP_DELAY);
   }
 
   $("btn-prev").addEventListener("click", function () {
@@ -615,6 +690,37 @@
             detail: a + " : " + b
           };
         });
+
+        // —— 身份特征（Identity）第五轴：独立计算，绝不并入 pairs，不影响四字母判型 ——
+        if (test.scoring.identityPair) {
+          var ip = test.scoring.identityPair;                          // 内部键位，如 ["AS","TS"]（与四轴 T 键位隔离）
+          var ipLetters = test.scoring.identityLetters || ["A", "T"];  // 对外展示字母，如 ["A","T"]
+          var ia = raw.dimScores[ip[0]] || 0;
+          var ib = raw.dimScores[ip[1]] || 0;
+          var iSum = ia + ib;
+          var iWinLetter = ia >= ib ? ipLetters[0] : ipLetters[1];     // 平局归左端（自信果断 A）
+          var iTop = Math.max(ia, ib);
+          var iLeft = iSum ? Math.round(ia / iSum * 100) : 50;
+          var ildA = dims.filter(function (d) { return d.key === ip[0]; })[0] || null;
+          var ildB = dims.filter(function (d) { return d.key === ip[1]; })[0] || null;
+          record.identity = {
+            key: ipLetters.join(""),
+            traitName: "身份特征",
+            label: (ildA && ildA.label ? ildA.label : "自信果断 A") + " / " + (ildB && ildB.label ? ildB.label : "情绪易波动 T"),
+            poleKeys: ip.slice(),
+            letter: iWinLetter,
+            score: iTop,
+            max: iSum,
+            percent: iSum ? Math.round(iTop / iSum * 100) : 50,
+            leftPct: iLeft,
+            rightPct: 100 - iLeft,
+            winner: iWinLetter,
+            detail: ia + " : " + ib
+          };
+          record.typeSuffix = iWinLetter;
+          record.typeCode = record.type + "-" + iWinLetter;
+          record.dimensions.push(record.identity);
+        }
       } else {
         record.dimensions = dims.map(function (d) {
           return {
@@ -788,6 +894,76 @@
     }
   }
 
+  /* ---------- MBTI 结果页：人格特征五轴双极条（对齐 16personalities 结果页） ---------- */
+  var MBTI_AXIS_ORDER = ["EI", "SN", "TF", "JP", "AT"];
+  var MBTI_AXIS_FALLBACK = {
+    EI: { trait: "能量", left: { key: "E", name: "外向" }, right: { key: "I", name: "内向" } },
+    SN: { trait: "心智", left: { key: "N", name: "天马行空" }, right: { key: "S", name: "求真务实" } },
+    TF: { trait: "天性", left: { key: "T", name: "理性思考" }, right: { key: "F", name: "情感细腻" } },
+    JP: { trait: "应对方式", left: { key: "J", name: "运筹帷幄" }, right: { key: "P", name: "随机应变" } },
+    AT: { trait: "身份特征", left: { key: "A", name: "自信果断" }, right: { key: "T", name: "情绪易波动" } }
+  };
+
+  function renderTraitsSection(record, test) {
+    var interp = (test && test.interpretation) || {};
+    var axes = interp.axes || {};
+    var dimMap = {};
+    (record.dimensions || []).forEach(function (d) { dimMap[d.key] = d; });
+    var html = '<div class="result-section"><h3>人格特征</h3><div class="trait-list">';
+    MBTI_AXIS_ORDER.forEach(function (axisKey) {
+      var meta = axes[axisKey] || MBTI_AXIS_FALLBACK[axisKey];
+      if (!meta) return;
+      var lp = null, rp = null;
+      if (axisKey === "AT") {
+        // 身份特征：dimensions 里合并为单条 identity，按 leftPct / rightPct 还原两极；旧记录无 identity 则整轴跳过
+        if (record.identity) { lp = record.identity.leftPct; rp = record.identity.rightPct; }
+      } else {
+        // 四轴：dimensions 以配对键（EI / SN / TF / JP）存储，percent 为偏向极的占比
+        var pd = dimMap[axisKey];
+        if (pd) { lp = (pd.winner === meta.left.key) ? pd.percent : (100 - pd.percent); rp = 100 - lp; }
+      }
+      if (lp === null || rp === null) return;
+      var leftName = meta.left.name, rightName = meta.right.name;
+      var winName = lp >= rp ? leftName : rightName;
+      var winPct = Math.max(lp, rp);
+      html += '<div class="trait-row" data-axis="' + axisKey + '">';
+      html += '<div class="trait-head">';
+      html += '<div class="trait-name">' + esc(meta.trait) + '：<span class="trait-mid">' + winPct + "% " + esc(winName) + "</span></div>";
+      html += '<button type="button" class="trait-help" aria-expanded="false" aria-label="查看' + esc(meta.trait) + '两极释义">?</button>';
+      html += "</div>";
+      html += '<div class="trait-bar" role="img" aria-label="' + esc(leftName) + " " + lp + "%，" + esc(rightName) + " " + rp + '%">';
+      html += '<span class="trait-side trait-side-left" style="width:' + lp + '%"></span>';
+      html += '<span class="trait-side trait-side-right" style="width:' + rp + '%"></span>';
+      html += "</div>";
+      html += '<div class="trait-ends"><span>' + esc(leftName) + "</span><span>" + esc(rightName) + "</span></div>";
+      html += '<div class="trait-desc" hidden>';
+      html += '<div class="trait-desc-main"><strong>' + esc(leftName) + "</strong><p>" + esc(meta.left.desc || "") + "</p></div>";
+      html += '<div class="trait-desc-main trait-desc-alt"><strong>' + esc(rightName) + "</strong><p>" + esc(meta.right.desc || "") + "</p></div>";
+      html += "</div>";
+      html += "</div>";
+    });
+    html += "</div>";
+    html += '<p class="trait-note">人格特征五轴均为独立百分比刻度，其中「身份特征」（自信果断 A / 情绪易波动 T）不影响前四个维度与四字母类型；点各轴右上角问号可查看两极释义。</p>';
+    html += "</div>";
+    return html;
+  }
+
+  function bindTraitTooltips(root) {
+    if (!root) return;
+    var helps = root.querySelectorAll(".trait-help");
+    Array.prototype.forEach.call(helps, function (btn) {
+      btn.addEventListener("click", function () {
+        var row = btn.closest(".trait-row");
+        var desc = row && row.querySelector(".trait-desc");
+        if (!desc) return;
+        var willShow = desc.hasAttribute("hidden");
+        if (willShow) desc.removeAttribute("hidden"); else desc.setAttribute("hidden", "");
+        btn.setAttribute("aria-expanded", willShow ? "true" : "false");
+        if (willShow) btn.classList.add("is-open"); else btn.classList.remove("is-open");
+      });
+    });
+  }
+
   function renderResult(record) {
     // MMPI-2 专用渲染（效度/临床/内容/附加/RC/PSY-5/KB-LW）
     if (record.testId === "mmpi2") { renderMmpi2Result(record); return; }
@@ -796,8 +972,35 @@
     var html = "";
 
     html += '<div class="result-hero">';
-    if (record.type) html += '<div class="result-type">' + (record.testId === "sinsvirtues" ? "⚖️ " : "") + esc(record.type) + "</div>";
-    if (record.typeName) html += '<div class="result-name">' + esc(record.typeName) + "</div>";
+    var isMbti = (record.testId === "mbti" || record.testId === "mbti145");
+    var mti = (isMbti && t && t.interpretation && t.interpretation.types && record.type) ? t.interpretation.types[record.type] : null;
+    if (isMbti) {
+      // 顶部类型标识区（对齐 16personalities）：引导语 + 类型名 + 类型编号（如 INTJ-T）+ 插画
+      html += '<div class="result-eyebrow">你的人格类型是</div>';
+      html += '<div class="result-name result-name-lg">' + esc(record.typeName || record.type || "") + "</div>";
+      html += '<div class="result-code">' + esc(record.typeCode || record.type || "") + "</div>";
+    } else {
+      if (record.type) html += '<div class="result-type">' + (record.testId === "sinsvirtues" ? "⚖️ " : "") + esc(record.type) + "</div>";
+      if (record.typeName) html += '<div class="result-name">' + esc(record.typeName) + "</div>";
+    }
+
+    // MBTI 趣味称呼卡片（保留官方称呼，补充网络流行昵称；mbti145 与 mbti 共用一套解读）
+    if (isMbti && record.type) {
+      var mNick = mti && mti.nick;
+      var mMascot = mti && mti.mascot;
+      var mColor = mti && mti.mascotColor;
+      if (mNick && mMascot) {
+        html += '<div class="mbti-mascot" style="--mascot:' + esc(mColor || "#a78bfa") + '">';
+        html += '<div class="mascot-halo"></div>';
+        html += '<div class="mascot-avatar" aria-hidden="true">' + esc(mMascot) + "</div>";
+        html += '<div class="mascot-text">';
+        html += '<div class="mascot-label">大家也爱这么叫</div>';
+        html += '<div class="mascot-nick">' + esc(mNick) + "</div>";
+        html += "</div>";
+        html += "</div>";
+      }
+    }
+
     html += '<div class="result-test-meta">' + esc(record.testName) + " · " + fmtTime(record.time) + "</div>";
     if (record.summary) html += '<div class="result-summary">' + esc(record.summary) + "</div>";
     html += "</div>";
@@ -841,16 +1044,20 @@
       html += "</div>";
     }
 
-    // 维度得分
+    // 维度得分 / MBTI「人格特征」五轴双极条（对齐 16personalities 结果页）
     if (record.dimensions && record.dimensions.length) {
-      html += '<div class="result-section"><h3>维度得分</h3>';
-      record.dimensions.forEach(function (d) {
-        html += '<div class="dimension-row">';
-        html += '<div class="dimension-label"><span class="dim-name">' + esc(d.label) + "</span><span class=\"dim-score\">" + d.score + " / " + d.max + "</span></div>";
-        html += '<div class="dimension-track"><div class="dimension-fill" style="width:' + d.percent + '%"></div></div>';
+      if (isMbti) {
+        html += renderTraitsSection(record, t);
+      } else {
+        html += '<div class="result-section"><h3>维度得分</h3>';
+        record.dimensions.forEach(function (d) {
+          html += '<div class="dimension-row">';
+          html += '<div class="dimension-label"><span class="dim-name">' + esc(d.label) + '</span><span class="dim-score">' + d.score + " / " + d.max + "</span></div>";
+          html += '<div class="dimension-track"><div class="dimension-fill" style="width:' + d.percent + '%"></div></div>';
+          html += "</div>";
+        });
         html += "</div>";
-      });
-      html += "</div>";
+      }
     }
 
     // 七宗罪/七美德 双雷达图
@@ -862,9 +1069,15 @@
       html += "</div></div>";
     }
 
-    // 内置解读
+    // 内置解读（MBTI 走类型四大板块卡片，其余走通用解读块）
     var blocks = buildInterpretation(t, record);
-    if (blocks && blocks.length) {
+    if (isMbti && mti && mti.blocks && mti.blocks.length) {
+      html += '<div class="result-section" id="builtin-interpret"><h3>详细解读</h3><div class="mbti-card-grid">';
+      mti.blocks.forEach(function (b) {
+        html += '<div class="mbti-card"><h4>' + esc(b.h) + "</h4><p>" + b.p + "</p></div>";
+      });
+      html += "</div></div>";
+    } else if (blocks && blocks.length) {
       html += '<div class="result-section" id="builtin-interpret"><h3>详细解读</h3>';
       blocks.forEach(function (b) {
         html += '<div class="interpret-block"><h4>' + esc(b.h) + "</h4><p>" + b.p + "</p></div>";
@@ -889,6 +1102,7 @@
     html += "</div></div>";
 
     box.innerHTML = html;
+    bindTraitTooltips(box);
 
     if (record.testId === "sinsvirtues") renderSinsRadar(record);
 
@@ -1217,7 +1431,7 @@
     if (fmt === "md") {
       var md = "# " + rec.testName + " 测试报告\n\n";
       md += "- 时间：" + fmtTime(rec.time) + "\n";
-      md += "- 结果：" + (rec.type ? rec.type + (rec.typeName ? " " + rec.typeName : "") : "-") + "\n";
+      md += "- 结果：" + ((rec.typeCode || rec.type) ? ((rec.typeCode || rec.type) + (rec.typeName ? " " + rec.typeName : "")) : "-") + "\n";
       if (rec.totalScore !== undefined) {
         md += "- 总分：" + rec.totalScore + (rec.maxScore ? " / " + rec.maxScore : "") + "\n";
         if (rec.standardScore !== undefined) md += "- 标准分：" + rec.standardScore + "\n";
@@ -1225,9 +1439,9 @@
       md += "\n";
       if (rec.warning) md += "> ⚠️ " + rec.warning + "\n\n";
       if (rec.dimensions && rec.dimensions.length) {
-        md += "## 维度得分\n\n";
+      md += "## " + ((rec.testId === "mbti" || rec.testId === "mbti145") ? "人格特征" : "维度得分") + "\n\n";
         rec.dimensions.forEach(function (d) {
-          md += "- " + d.label + "：" + d.score + " / " + d.max + "\n";
+        md += "- " + d.label + "：" + d.score + " / " + d.max + (d.detail ? "（" + d.detail + "）" : "") + "\n";
         });
       }
       var blocks = buildInterpretation(t, rec);
@@ -1241,9 +1455,9 @@
     // html
     var dimHtml = "";
     if (rec.dimensions && rec.dimensions.length) {
-      dimHtml = "<h2>维度得分</h2><div style=\"margin:12px 0\">";
+      dimHtml = "<h2>" + ((rec.testId === "mbti" || rec.testId === "mbti145") ? "人格特征" : "维度得分") + "</h2><div style=\"margin:12px 0\">";
       rec.dimensions.forEach(function (d) {
-        dimHtml += '<div style="margin:8px 0"><div style="font-size:13px;color:#666;margin-bottom:4px">' + esc(d.label) + "：" + d.score + " / " + d.max + "</div>" +
+        dimHtml += '<div style="margin:8px 0"><div style="font-size:13px;color:#666;margin-bottom:4px">' + esc(d.label) + "：" + d.score + " / " + d.max + (d.detail ? "（" + d.detail + "）" : "") + "</div>" +
           '<div style="background:#eee;border-radius:6px;height:8px;overflow:hidden"><div style="width:' + d.percent + "%;height:100%;background:#0071e3;border-radius:6px\"></div></div></div>";
       });
       dimHtml += "</div>";
@@ -1256,7 +1470,7 @@
       "<body style=\"font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#1d1d1f\">" +
       "<h1>" + esc(rec.testName) + " 测试报告</h1>" +
       "<p style=\"color:#86868b;font-size:13px\">" + fmtTime(rec.time) + "</p>" +
-      (rec.type ? "<div style=\"font-size:40px;font-weight:800;color:#0071e3;margin:16px 0\">" + esc(rec.type) + "</div>" : "") +
+      (rec.type ? "<div style=\"font-size:40px;font-weight:800;color:#0071e3;margin:16px 0\">" + esc(rec.typeCode || rec.type) + "</div>" : "") +
       (rec.typeName ? "<h2 style=\"margin-bottom:4px\">" + esc(rec.typeName) + "</h2>" : "") +
       (rec.summary ? "<p>" + esc(rec.summary) + "</p>" : "") +
       ((rec.totalScore !== undefined) ? "<div style=\"margin:14px 0;padding:12px 16px;background:#f5f5f7;border-radius:10px;font-size:14px\">总分：<strong>" + rec.totalScore + (rec.maxScore ? " / " + rec.maxScore : "") + "</strong>" + (rec.standardScore !== undefined ? " ｜ 标准分：<strong>" + rec.standardScore + "</strong>" : "") + (rec.levelName ? " ｜ 分级：<strong>" + esc(rec.levelName) + "</strong>" : "") + "</div>" : "") +
@@ -1475,11 +1689,12 @@
     }
     if (btn) btn.disabled = true; // 生成中禁用，防止重复点击
     var t = window.TESTS.find(function (x) { return x.id === rec.testId; });
-    var dimText = (rec.dimensions || []).map(function (d) { return d.label + " " + d.score + "/" + d.max; }).join("、");
+    var dimText = (rec.dimensions || []).map(function (d) { return d.label + " " + d.score + "/" + d.max + (d.detail ? "（" + d.detail + "）" : ""); }).join("、");
     var prompt = "请基于以下心理测试结果，写一份详细的深度解读报告（中文，800字左右，分小节：核心特质、潜在盲区、发展建议、人际关系启示）。\n\n" +
       "测试：" + rec.testName + "\n" +
-      "结果类型：" + rec.type + (rec.typeName ? "（" + rec.typeName + "）" : "") + "\n" +
-      "维度得分：" + (dimText || "无") + "\n";
+      "结果类型：" + (rec.typeCode || rec.type) + (rec.typeName ? "（" + rec.typeName + "）" : "") + "\n" +
+      "维度得分：" + (dimText || "无") + "\n" +
+            (rec.identity ? "身份特征（第五轴，独立于四字母类型）：" + rec.identity.label + "，选项原始分布 " + rec.identity.detail + "，" + rec.identity.percent + "% 偏向" + (rec.identity.letter === "A" ? (rec.identity.label.split(" / ")[0] || "自信果断 A") : (rec.identity.label.split(" / ")[1] || "情绪易波动 T")) + "，完整类型编号 " + (rec.typeCode || rec.type) + "\n" : "");
     if (rec.warning) {
       prompt += "\n该结果存在风险提示：" + rec.warning + "\n";
     }

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light" class=""><head>
+<html lang="zh-CN" data-theme="light"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>测试小站 · 专业心理测评</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;🧠&lt;/text&gt;&lt;/svg&gt;">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260825k">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20260920d">
 <script>
   // 尽早应用主题，避免刷新时闪烁（与系统偏好一致或用记忆值）
   (function () {
@@ -27,11 +27,11 @@
     <button class="brand" data-nav="home"><span class="brand-dot"></span>测试小站</button>
     <div class="nav-wrap">
       <nav class="nav">
-        <button class="nav-item" data-nav="home">首页</button>
-        <button class="nav-item active" data-nav="history">历史</button>
+        <button class="nav-item active" data-nav="home">首页</button>
+        <button class="nav-item" data-nav="history">历史</button>
         <button class="nav-item" data-nav="settings">设置</button>
       </nav>
-      <button id="theme-toggle" class="theme-toggle" type="button" title="主题：深色（点击切换）" aria-label="切换主题">
+      <button id="theme-toggle" class="theme-toggle" type="button" title="主题：浅色（点击切换）" aria-label="切换主题">
         <span class="theme-icon theme-icon-auto">🌗</span>
         <span class="theme-icon theme-icon-light">☀️</span>
         <span class="theme-icon theme-icon-dark">🌙</span>
@@ -47,9 +47,9 @@
     <div class="hero">
       <h1 class="hero-title">了解自己<br>是最值得花时间的事</h1>
       <p class="hero-sub">专业心理测评工具，从人格、情感到心理健康<br>5 分钟开始探索真实的你</p>
-      <button class="btn primary hero-cta" id="hero-start" type="button">开始测试</button>
+      <button class="btn primary hero-cta" id="hero-start" type="button">随便测测</button>
       <div class="hero-stats">
-        <div class="hero-stat"><span class="stat-num" id="hero-stat-tests">10+</span><span class="stat-label">专业量表</span></div>
+        <div class="hero-stat"><span class="stat-num" id="hero-stat-tests">16+</span><span class="stat-label">专业量表</span></div>
         <span class="hero-stat-sep"></span>
         <div class="hero-stat"><span class="stat-num">5min</span><span class="stat-label">快速测评</span></div>
         <span class="hero-stat-sep"></span>
@@ -62,7 +62,7 @@
       <button id="search-clear" class="search-clear" type="button" hidden="" aria-label="清空搜索">✕</button>
     </div>
     <p id="search-hint" class="search-hint" hidden=""></p>
-    <div id="test-groups" class="test-groups"><div class="test-group open" data-gid="hot"><button class="group-header" type="button"><span class="group-icon">🔥</span><span class="group-name">热门测试</span><span class="group-count">1</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #0071e3;"><span class="test-icon" style="background:#0071e3">MB</span><span class="test-name">MBTI 人格测试</span><span class="test-desc">从能量来源、信息获取、决策方式、生活态度四个维度探索你的人格类型，共 16 种类型。</span><span class="test-meta"><span>60 题</span><span>约 5 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="personality"><button class="group-header" type="button"><span class="group-icon">🧠</span><span class="group-name">人格测试</span><span class="group-count">2</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #8e8e93;"><span class="test-icon" style="background:#8e8e93">AT</span><span class="test-name">依恋类型测试</span><span class="test-desc">基于依恋理论，从「焦虑」与「回避」两个维度，了解你在亲密关系中的安全感模式。</span><span class="test-meta"><span>18 题</span><span>约 3 分钟</span></span></button><button class="test-card" style="--card-accent: #0071e3;"><span class="test-icon" style="background:#0071e3">MB</span><span class="test-name">MBTI 人格测试</span><span class="test-desc">从能量来源、信息获取、决策方式、生活态度四个维度探索你的人格类型，共 16 种类型。</span><span class="test-meta"><span>60 题</span><span>约 5 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="mental"><button class="group-header" type="button"><span class="group-icon">💚</span><span class="group-name">心理健康测试</span><span class="group-count">1</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #af52de;"><span class="test-icon" style="background:#af52de">S90</span><span class="test-name">SCL-90 症状自评量表</span><span class="test-desc">90 道题，从躯体化、强迫、抑郁、焦虑等 10 个因子，评估你近一周的心理健康状况。</span><span class="test-meta"><span>90 题</span><span>约 10 分钟</span></span></button></div></div></div></div>
+    <div id="test-groups" class="test-groups"><div class="test-group open" data-gid="hot"><button class="group-header" type="button"><span class="group-icon">🔥</span><span class="group-name">热门测试</span><span class="group-count">1</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card is-hot" style="--card-accent: #0071e3;"><span class="test-icon" style="background:#0071e3">MB</span><span class="test-name">MBTI 人格测试</span><span class="test-desc">官网风格 MBTI：60 道 7 点同意度陈述题（左端「同意」↔ 右端「不认同」的圆点刻度，正反向混排），按能量来源、信息获取、决策方式、生活态度四维判定 16 种人格类型。</span><span class="test-meta"><span>60 题</span><span>约 5 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="personality"><button class="group-header" type="button"><span class="group-icon">🧠</span><span class="group-name">人格测试</span><span class="group-count">4</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #8e8e93;"><span class="test-icon" style="background:#8e8e93">AT</span><span class="test-name">依恋类型测试</span><span class="test-desc">基于依恋理论，从「焦虑」与「回避」两个维度，了解你在亲密关系中的安全感模式。</span><span class="test-meta"><span>18 题</span><span>约 3 分钟</span></span></button><button class="test-card" style="--card-accent: #0071e3;"><span class="test-icon" style="background:#0071e3">MB</span><span class="test-name">MBTI 人格测试</span><span class="test-desc">官网风格 MBTI：60 道 7 点同意度陈述题（左端「同意」↔ 右端「不认同」的圆点刻度，正反向混排），按能量来源、信息获取、决策方式、生活态度四维判定 16 种人格类型。</span><span class="test-meta"><span>60 题</span><span>约 5 分钟</span></span></button><button class="test-card" style="--card-accent: #6d28d9;"><span class="test-icon" style="background:#6d28d9">M5</span><span class="test-name">MBTI 专业版（145题）</span><span class="test-desc">源自 16ceshi 专业版题库：词对与情境二选一，改为 7 点圆点刻度（左端为目标词、右端为对照词，中间为两者都像），按 E/I、S/N、T/F、J/P 判定 16 型（原 145 题，剔除 12 道低质词对后为 132 题）。</span><span class="test-meta"><span>132 题</span><span>约 8 分钟</span></span></button><button class="test-card" style="--card-accent: #ff9500;"><span class="test-icon" style="background:#ff9500">PD</span><span class="test-name">PDP 性格测试</span><span class="test-desc">PDP（Professional Dyna-Metric Programs）行为特质动态衡量系统，根据天生特质将人群分为老虎、孔雀、考拉、猫头鹰、变色龙五种类型，常用于人才管理、招聘与团队建设。</span><span class="test-meta"><span>30 题</span><span>约 5 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="fun"><button class="group-header" type="button"><span class="group-icon">🎯</span><span class="group-name">趣味测试</span><span class="group-count">1</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #7c3aed;"><span class="test-icon" style="background:#7c3aed">⚖</span><span class="test-name">七宗罪 vs 七美德</span><span class="test-desc">基于中世纪神学七宗罪与对位七美德的概念框架，通过35道生活化情境题，从14个维度(7罪+7美德)探索你内心的光明与欲望面。趣味人格测试，结果仅供娱乐与自我觉察参考。</span><span class="test-meta"><span>35 题</span><span>约 5 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="career"><button class="group-header" type="button"><span class="group-icon">💼</span><span class="group-name">职业测评</span><span class="group-count">1</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #34c759;"><span class="test-icon" style="background:#34c759">HO</span><span class="test-name">霍兰德职业兴趣测试</span><span class="test-desc">Holland RIASEC 职业兴趣理论，将人格与职业环境分为现实、研究、艺术、社会、企业、常规六大类型，取前三高分生成三码兴趣代码，帮你找到匹配的职业方向。</span><span class="test-meta"><span>60 题</span><span>约 8 分钟</span></span></button></div></div></div><div class="test-group open" data-gid="mental"><button class="group-header" type="button"><span class="group-icon">💚</span><span class="group-name">心理健康测试</span><span class="group-count">10</span><span class="group-chev">▶</span></button><div class="group-body"><div class="test-grid"><button class="test-card" style="--card-accent: #af52de;"><span class="test-icon" style="background:#af52de">S90</span><span class="test-name">SCL-90 症状自评量表</span><span class="test-desc">90 道题，从躯体化、强迫、抑郁、焦虑等 10 个因子，评估你近一周的心理健康状况。</span><span class="test-meta"><span>90 题</span><span>约 10 分钟</span></span></button><button class="test-card" style="--card-accent: #5856d6;"><span class="test-icon" style="background:#5856d6">M2</span><span class="test-name">MMPI-2 明尼苏达多相人格测验</span><span class="test-desc">临床心理学经典人格测验，567 题，涵盖效度、临床、内容、RC、PSY-5 等 147 个量表，计分严格对标使用手册。</span><span class="test-meta"><span>567 题</span><span>约 45-90 分钟</span></span></button><button class="test-card" style="--card-accent: #ff2d55;"><span class="test-icon" style="background:#ff2d55">P9</span><span class="test-name">PHQ-9 抑郁症筛查量表</span><span class="test-desc">9 道题，评估最近两周的抑郁症状。Pfizer 授权，国际通用抑郁筛查工具。</span><span class="test-meta"><span>9 题</span><span>约 2 分钟</span></span></button><button class="test-card" style="--card-accent: #ff9500;"><span class="test-icon" style="background:#ff9500">G7</span><span class="test-name">GAD-7 广泛性焦虑量表</span><span class="test-desc">7 道题，评估最近两周的焦虑症状。收录于北京市地方标准 DB11/T 1723-2020。</span><span class="test-meta"><span>7 题</span><span>约 1 分钟</span></span></button><button class="test-card" style="--card-accent: #5e5ce6;"><span class="test-icon" style="background:#5e5ce6">IS</span><span class="test-name">ISI 失眠严重程度指数</span><span class="test-desc">7 道题，评估最近两周的失眠严重程度。中文版经台湾学者信效度验证（台中荣总医院采用）。</span><span class="test-meta"><span>7 题</span><span>约 2 分钟</span></span></button><button class="test-card" style="--card-accent: #32ade6;"><span class="test-icon" style="background:#32ade6">SA</span><span class="test-name">SAD 社交回避及苦恼量表</span><span class="test-desc">28 道是/否题，评估社交回避与社交苦恼程度。Watson &amp; Friend（1969）编制，中文版经彭纯子等修订。</span><span class="test-meta"><span>28 题</span><span>约 4 分钟</span></span></button><button class="test-card" style="--card-accent: #ff3b30;"><span class="test-icon" style="background:#ff3b30">SD</span><span class="test-name">SDS 抑郁自评量表</span><span class="test-desc">Zung 编制的 20 题抑郁自评量表，评估最近一周的抑郁症状。中国常模广泛用于临床。</span><span class="test-meta"><span>20 题</span><span>约 4 分钟</span></span></button><button class="test-card" style="--card-accent: #ff9500;"><span class="test-icon" style="background:#ff9500">SA2</span><span class="test-name">SAS 焦虑自评量表</span><span class="test-desc">Zung 编制的 20 题焦虑自评量表，评估最近一周的焦虑症状。中国常模广泛用于临床。</span><span class="test-meta"><span>20 题</span><span>约 4 分钟</span></span></button><button class="test-card" style="--card-accent: #af52de;"><span class="test-icon" style="background:#af52de">YB</span><span class="test-name">Y-BOCS 耶鲁-布朗强迫症量表</span><span class="test-desc">10 道题，分别评估强迫观念与强迫行为的严重程度。Goodman（1989）编制，自评版结果仅作初步参考。</span><span class="test-meta"><span>10 题</span><span>约 3 分钟</span></span></button><button class="test-card" style="--card-accent: #ff2d55;"><span class="test-icon" style="background:#ff2d55">YM</span><span class="test-name">YMRS 杨氏躁狂量表</span><span class="test-desc">11 道题，评估近 48 小时内的躁狂症状（含双倍权重题）。Young（1978）编制，自评版仅作初步筛查参考。</span><span class="test-meta"><span>11 题</span><span>约 3 分钟</span></span></button></div></div></div></div>
   </section>
 
   <!-- 答题页 -->
@@ -72,22 +72,22 @@
         <button id="btn-quit" class="btn-quit" type="button" aria-label="返回首页" style="font-weight: bold">← 返回首页</button>
         <div class="quiz-meta">
           <span id="quiz-name" class="quiz-name">MBTI 人格测试</span>
-          <span id="quiz-progress-text" class="quiz-progress-text">已完成 0 / 60 题</span>
+          <span id="quiz-progress-text" class="quiz-progress-text">已完成 1 / 60 题</span>
         </div>
       </div>
-      <div class="progress-track"><div id="quiz-progress-bar" class="progress-fill" style="width: 0%;"></div></div>
+      <div class="progress-track"><div id="quiz-progress-bar" class="progress-fill" style="width: 2%;"></div></div>
     </div>
     <div class="quiz-body">
-      <div id="question-index" class="question-index">第 1 / 60 题</div>
-      <h2 id="question-text" class="question-text">周末你更想怎么过？</h2>
-      <div id="options" class="options-list"><button class="option-item"><span class="option-mark"></span><span>和朋友聚会，热闹一整天</span></button><button class="option-item"><span class="option-mark"></span><span>在家安静独处，做自己的事</span></button></div>
+      <div id="question-index" class="question-index">第 2 / 60 题</div>
+      <h2 id="question-text" class="question-text">抽象的理论讨论即使眼下用不上，我也愿意投入时间琢磨。</h2>
+      <div id="options" class="options-list dots-mode"><div class="dots-scale" role="radiogroup" aria-label="7 档刻度：同意 ↔ 不认同"><span class="dots-end dots-end-left">同意</span><div class="dots-track"><span class="dots-line"></span><button type="button" class="dot" role="radio" aria-checked="false" aria-label="完全同意" title="完全同意"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="同意" title="同意"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="有点同意" title="有点同意"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="中立" title="中立"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="有点不认同" title="有点不认同"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="不认同" title="不认同"><span class="dot-core"></span></button><button type="button" class="dot" role="radio" aria-checked="false" aria-label="完全不认同" title="完全不认同"><span class="dot-core"></span></button></div><span class="dots-end dots-end-right">不认同</span></div></div>
     </div>
     <div class="quiz-foot">
-      <button id="btn-prev" class="btn ghost" disabled="">上一题</button>
+      <button id="btn-prev" class="btn ghost">上一题</button>
       <div class="quiz-foot-right">
         <div class="save-progress" id="save-progress">
-          <div class="save-progress-track"><div id="save-progress-fill" class="save-progress-fill" style="width: 0%;"></div></div>
-          <span id="save-progress-text" class="save-progress-text">0%</span>
+          <div class="save-progress-track"><div id="save-progress-fill" class="save-progress-fill" style="width: 2%;"></div></div>
+          <span id="save-progress-text" class="save-progress-text">2%</span>
         </div>
         <span id="quiz-save-hint" class="save-hint">进度自动保存</span>
       </div>
@@ -138,7 +138,7 @@
 
     <div class="settings-block">
       <h3>数据管理</h3>
-      <p class="block-desc">所有测试数据仅保存在本机浏览器，导出后可自行备份（如放入项目文件夹享受 NAS 同步）。</p>
+      <p class="block-desc">所有测试数据仅保存在本机浏览器，导出后可自行备份</p>
       <div class="settings-actions">
         <button id="btn-export-all-2" class="btn ghost">导出全部记录</button>
         <button id="btn-clear-data" class="btn danger">清空全部数据</button>
@@ -163,7 +163,7 @@
 </div>
 
 <!-- 首页推荐弹窗：随机推荐 4 个测试 + 让我想想 -->
-<div id="pick-modal" class="modal pick-modal" hidden>
+<div id="pick-modal" class="modal pick-modal" hidden="">
   <div id="pick-mask" class="modal-mask"></div>
   <div class="pick-box" role="dialog" aria-modal="true" aria-labelledby="pick-title">
     <div class="pick-head">
@@ -171,19 +171,24 @@
       <h2 class="pick-title" id="pick-title">今天想探索哪一面？</h2>
       <p class="pick-sub">随机挑了 4 个测试，选一个开始，或者慢慢逛</p>
     </div>
-    <div class="pick-list" id="pick-list"></div>
+    <div class="pick-list" id="pick-list"><button type="button" class="pick-card" aria-label="开始MBTI 专业版（145题）测试"><span class="pick-card-icon" style="background:#6d28d9">M5</span><span class="pick-card-body"><span class="pick-card-name">MBTI 专业版（145题）</span><span class="pick-card-desc">源自 16ceshi 专业版题库：词对与情境二选一，改为 7 点圆点刻度（左端为目标词、右端为对照词，中间为两者都像），按 E/I、S/N、T/F、J/P 判定 16 型（原 145 题，剔除 12 道低质词对后为 132 题）。</span></span><span class="pick-card-meta"><span>132 题</span><span>约 8 分钟</span><span class="pick-card-arrow">›</span></span></button><button type="button" class="pick-card" aria-label="开始SCL-90 症状自评量表测试"><span class="pick-card-icon" style="background:#af52de">S90</span><span class="pick-card-body"><span class="pick-card-name">SCL-90 症状自评量表</span><span class="pick-card-desc">90 道题，从躯体化、强迫、抑郁、焦虑等 10 个因子，评估你近一周的心理健康状况。</span></span><span class="pick-card-meta"><span>90 题</span><span>约 10 分钟</span><span class="pick-card-arrow">›</span></span></button><button type="button" class="pick-card" aria-label="开始SDS 抑郁自评量表测试"><span class="pick-card-icon" style="background:#ff3b30">SD</span><span class="pick-card-body"><span class="pick-card-name">SDS 抑郁自评量表</span><span class="pick-card-desc">Zung 编制的 20 题抑郁自评量表，评估最近一周的抑郁症状。中国常模广泛用于临床。</span></span><span class="pick-card-meta"><span>20 题</span><span>约 4 分钟</span><span class="pick-card-arrow">›</span></span></button><button type="button" class="pick-card" aria-label="开始GAD-7 广泛性焦虑量表测试"><span class="pick-card-icon" style="background:#ff9500">G7</span><span class="pick-card-body"><span class="pick-card-name">GAD-7 广泛性焦虑量表</span><span class="pick-card-desc">7 道题，评估最近两周的焦虑症状。收录于北京市地方标准 DB11/T 1723-2020。</span></span><span class="pick-card-meta"><span>7 题</span><span>约 1 分钟</span><span class="pick-card-arrow">›</span></span></button></div>
     <button class="pick-think" id="pick-think" type="button">
       <span class="pick-think-icon">💭</span>
-      <span>让我想想</span>
+      <span style="font-size: 14px">让我自己来<br></span>
     </button>
   </div>
 </div>
 
 <footer class="foot">数据仅保存在本机浏览器 · 测试小站</footer>
 
-<script src="mmpi2-data.js?v=20260825k"></script>
-<script src="mmpi2-score.js?v=20260825k"></script>
-<script src="tests-data.js?v=20260825k"></script>
-<script src="app.js?v=20260825k"></script>
-</body>
-</html>
+<script src="mmpi2-data.js?v=20260831c"></script>
+<script src="mmpi2-score.js?v=20260831c"></script>
+<script src="tests-data.js?v=20260920c"></script>
+<script src="app.js?v=20260920a"></script>
+
+
+<iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="508" height="621" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe>
+
+
+
+</body></html>
