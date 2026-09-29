@@ -7,3 +7,9 @@
 # 系统文件
 Thumbs.db
 Desktop.ini
+
+# 素材/备份/中间文件，禁止提交
+/.temp/
+*.bak
+*.log
+*.tmp
